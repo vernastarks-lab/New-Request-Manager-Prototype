@@ -1,0 +1,334 @@
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="baa-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="baa-title">Add Agency</h2>
+    <button
+      class="sheet-close"
+      type="button"
+      (click)="closed.emit()"
+      aria-label="Close Add Agency panel"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sheet-body">
+
+    <!-- Summary bar -->
+    <div class="summary-bar">
+      <div class="summary-collapsed">
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <span class="summary-num">{{ students().length }}</span>
+            <span class="summary-label">Students</span>
+          </div>
+          <div class="summary-divider" aria-hidden="true"></div>
+          <div class="summary-stat">
+            <span class="summary-num">{{ plannedAgenciesWithCounts().length }}</span>
+            <span class="summary-label">Planned Agencies</span>
+          </div>
+        </div>
+        <button
+          class="summary-toggle"
+          type="button"
+          (click)="summaryExpanded.update(v => !v)"
+          [attr.aria-expanded]="summaryExpanded()"
+          aria-controls="baa-summary-details"
+        >
+          @if (summaryExpanded()) {
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+            Hide summary
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            Show summary
+          }
+        </button>
+      </div>
+
+      @if (summaryExpanded()) {
+        <div class="summary-expanded" id="baa-summary-details">
+          <div class="summary-cols">
+
+            <!-- Students: block → details → students with specialism pills -->
+            <div class="summary-col">
+              <h3 class="summary-col-heading">Selected Students</h3>
+              @for (group of studentsByBlock(); track group.block) {
+                <div class="baa-block-group">
+                  <div class="baa-block-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    <span class="baa-block-name">{{ group.block }}</span>
+                    @if (group.period) {
+                      <span class="baa-block-period">{{ group.period }}</span>
+                    }
+                    <span class="baa-block-count">{{ group.count }}</span>
+                  </div>
+                  @for (dg of group.detailGroups; track dg.details) {
+                    <div class="baa-details-heading">{{ dg.details }}</div>
+                    @for (student of dg.students; track student.name) {
+                      <div class="baa-student-row">
+                        <span class="baa-student-name">{{ student.name }}</span>
+                        @if (student.specialism) {
+                          <span class="baa-specialism-pill">{{ student.specialism }}</span>
+                        }
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Planned agencies with student count -->
+            <div class="summary-col">
+              <h3 class="summary-col-heading">Planned Agencies</h3>
+              @for (pa of plannedAgenciesWithCounts(); track pa.name) {
+                <div class="baa-planned-row">
+                  <span class="baa-planned-name">{{ pa.name }}</span>
+                  <span class="baa-planned-count">{{ pa.count }} {{ pa.count === 1 ? 'student' : 'students' }}</span>
+                </div>
+              }
+              @if (plannedAgenciesWithCounts().length === 0) {
+                <span class="summary-empty">No agencies planned yet.</span>
+              }
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Filter section -->
+    <div class="filter-section">
+      <div class="filter-grid">
+        <input
+          type="text"
+          class="field-input"
+          [value]="searchText()"
+          (input)="searchText.set($any($event.target).value)"
+          placeholder="Search Agencies"
+          aria-label="Search Agencies"
+        />
+        <select class="field-select" [value]="agencyType()" (change)="agencyType.set($any($event.target).value)" aria-label="Search Agency Type">
+          <option value="">Search Agency Type</option>
+          <option>Hospital</option><option>Ambulance</option><option>Community</option>
+        </select>
+        <select class="field-select" [value]="specialism()" (change)="specialism.set($any($event.target).value)" aria-label="Search Specialism">
+          <option value="">Search Specialism</option>
+          <option>Emergency Care</option><option>Critical Care</option><option>Intensive Care Paramedic</option>
+        </select>
+        <select class="field-select" [value]="categories()" (change)="categories.set($any($event.target).value)" aria-label="Search Categories">
+          <option value="">Search Categories</option>
+          <option>Category A</option><option>Category B</option>
+        </select>
+        <select class="field-select" [value]="integrationPartner()" (change)="integrationPartner.set($any($event.target).value)" aria-label="Search Integration Partner">
+          <option value="">Search Integration Partner</option>
+          <option>InPlace</option><option>MedConnect</option>
+        </select>
+        <select class="field-select" [value]="groups()" (change)="groups.set($any($event.target).value)" aria-label="Search Groups">
+          <option value="">Search Groups</option>
+          <option>Group 1</option><option>Group 2</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <label class="checkbox-label">
+          <input type="checkbox" [checked]="hasPlacements()" (change)="hasPlacements.set($any($event.target).checked)" />
+          Has Placements in this Allocation Group
+        </label>
+        <div class="filter-btns">
+          <button class="btn btn--secondary btn--sm" type="button" (click)="clearFilters()">Clear</button>
+          <button class="btn btn--primary btn--sm" type="button">Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agency table -->
+    <div class="table-wrapper">
+      <table class="agency-table" aria-label="Agencies">
+        <thead>
+          <tr class="table-head-row">
+            <th class="th" scope="col">Agency</th>
+            @for (colId of columnOrder(); track colId) {
+              @switch (colId) {
+                @case ('specialism') {
+                  @if (colVisibility().specialism) {
+                    <th class="th" scope="col">Specialism</th>
+                  }
+                }
+                @case ('location') {
+                  @if (colVisibility().location) {
+                    <th class="th" scope="col">Location</th>
+                  }
+                }
+                @case ('plc') {
+                  @if (colVisibility().plc) {
+                    <th class="th th--num" scope="col">Plc (LY+TY)</th>
+                  }
+                }
+                @default {
+                  @if (!hiddenAttrColumns().has(colId)) {
+                    <th class="th" scope="col">{{ getAttrName(colId) }}</th>
+                  }
+                }
+              }
+            }
+            <th class="th th--action" scope="col">Action</th>
+            <th class="th th--cog" scope="col">
+              <div class="col-menu-wrapper">
+                <button
+                  class="col-settings-btn"
+                  type="button"
+                  (click)="showColMenu.update(v => !v); $event.stopPropagation()"
+                  [attr.aria-expanded]="showColMenu()"
+                  aria-label="Show or hide columns"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                @if (showColMenu()) {
+                  <div class="col-menu" role="dialog" aria-label="Column visibility" (click)="$event.stopPropagation()">
+                    <div class="col-menu-heading">Show/Hide Columns</div>
+                    @for (col of colDefs; track col.key) {
+                      <label class="col-menu-item">
+                        <input type="checkbox" [checked]="colVisibility()[col.key]" (change)="toggleCol(col.key)" />
+                        {{ col.label }}
+                      </label>
+                    }
+                    @if (attrColumnOrder().length > 0) {
+                      <div class="col-menu-divider"></div>
+                      <div class="col-menu-section-label">
+                        Custom
+                        <span class="col-menu-remaining">({{ attrRemaining() }} remaining)</span>
+                      </div>
+                      @for (attr of attrColumnOrder(); track attr.id) {
+                        <div class="col-menu-item col-menu-item--attr">
+                          <label class="col-menu-item-label">
+                            <input type="checkbox" [checked]="!hiddenAttrColumns().has(attr.id)" (change)="toggleAttrColumn(attr.id)" />
+                            {{ attr.name }}
+                          </label>
+                          <div class="reorder-btns">
+                            <button class="reorder-btn" type="button" aria-label="Move up"
+                              [disabled]="columnOrder().indexOf(attr.id) === 0"
+                              (click)="moveColUp(attr.id); $event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="4"/><polyline points="7 9 12 4 17 9"/></svg></button>
+                            <button class="reorder-btn" type="button" aria-label="Move down"
+                              [disabled]="columnOrder().indexOf(attr.id) === columnOrder().length - 1"
+                              (click)="moveColDown(attr.id); $event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="7 15 12 20 17 15"/></svg></button>
+                          </div>
+                          <div class="attr-options-wrapper">
+                            <button class="attr-options-btn" type="button"
+                              [attr.aria-label]="'Options for ' + attr.name"
+                              (click)="toggleAttrOptions(attr.id); $event.stopPropagation()">⋮</button>
+                            @if (openAttrOptionsId() === attr.id) {
+                              <div class="attr-options-menu" role="menu">
+                                <button class="attr-option-item attr-option-item--danger" type="button" role="menuitem"
+                                  (click)="removeAttrColumn(attr.id); openAttrOptionsId.set(null)">Delete Column</button>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    }
+                    <div class="col-menu-divider"></div>
+                    <div class="erref-search-wrapper">
+                      <button
+                        class="col-menu-add-attr-link"
+                        type="button"
+                        [disabled]="attrRemaining() === 0"
+                        (click)="toggleErrefSearch(); $event.stopPropagation()"
+                      >+ Include Agency Attribute</button>
+                      @if (showErrefSearch()) {
+                        <div class="erref-search-popover" role="dialog" aria-label="Search Attribute" (click)="$event.stopPropagation()">
+                          <div class="erref-search-input-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="erref-search-icon">
+                              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                            </svg>
+                            <input
+                              class="erref-search-input"
+                              type="search"
+                              placeholder="Search Attribute"
+                              [value]="errefSearchQuery()"
+                              (input)="errefSearchQuery.set($any($event.target).value)"
+                              aria-label="Search Attribute"
+                              autocomplete="off"
+                            />
+                          </div>
+                          @if (errefSearchResults().length > 0) {
+                            <div class="erref-results">
+                              @for (attr of errefSearchResults(); track attr.id) {
+                                <div class="erref-result-item">
+                                  <div class="erref-result-info">
+                                    <span class="erref-result-name">{{ attr.name }} <span class="erref-result-id">({{ attr.id }})</span></span>
+                                    @if (attr.description) {
+                                      <span class="erref-result-desc">{{ attr.description }}</span>
+                                    }
+                                  </div>
+                                  <button class="erref-add-btn" type="button" (click)="addAttrColumn(attr)">Add as Column</button>
+                                </div>
+                              }
+                            </div>
+                          } @else if (errefSearchQuery().trim().length > 0) {
+                            <p class="erref-no-results">No matching attributes found.</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (agency of filteredAgencies(); track agency.name) {
+            <tr class="table-row">
+              <td class="td">{{ agency.name }}</td>
+              @for (colId of columnOrder(); track colId) {
+                @switch (colId) {
+                  @case ('specialism') {
+                    @if (colVisibility().specialism) {
+                      <td class="td">{{ agency.specialism }}</td>
+                    }
+                  }
+                  @case ('location') {
+                    @if (colVisibility().location) {
+                      <td class="td">{{ agency.location }}</td>
+                    }
+                  }
+                  @case ('plc') {
+                    @if (colVisibility().plc) {
+                      <td class="td td--num">{{ agency.placements }}</td>
+                    }
+                  }
+                  @default {
+                    @if (!hiddenAttrColumns().has(colId)) {
+                      <td class="td">{{ getErrefValue(agency.name, colId) }}</td>
+                    }
+                  }
+                }
+              }
+              <td class="td td--action">
+                <button
+                  class="action-btn"
+                  [class.action-btn--planned]="getState(agency.name) === 'selected'"
+                  type="button"
+                  (click)="toggleSelect(agency.name)"
+                  [attr.aria-label]="(getState(agency.name) === 'selected' ? 'Planned: ' : 'Select ') + agency.name"
+                >
+                  {{ getState(agency.name) === 'selected' ? 'Planned' : 'Select' }}
+                </button>
+              </td>
+              <td class="td td--cog"></td>
+            </tr>
+          }
+          @if (filteredAgencies().length === 0) {
+            <tr>
+              <td [attr.colspan]="3 + columnOrder().length" class="empty-cell">No agencies match the current filters.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

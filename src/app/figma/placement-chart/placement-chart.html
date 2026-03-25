@@ -1,0 +1,32 @@
+<div class="chart-card">
+  <h3 class="chart-title">Placements Required</h3>
+  <div class="chart-body">
+    <div class="donut-wrapper" role="img" [attr.aria-label]="'Placements Required: ' + total + ' total'">
+      <svg viewBox="0 0 100 100" class="donut-svg" aria-hidden="true">
+        @for (seg of segments; track seg.label) {
+          <circle
+            cx="50" cy="50" r="40"
+            fill="none"
+            [attr.stroke]="seg.color"
+            stroke-width="20"
+            [attr.stroke-dasharray]="seg.dashArray"
+            [attr.stroke-dashoffset]="seg.dashOffset"
+          />
+        }
+      </svg>
+      <div class="donut-center" aria-hidden="true">
+        <span class="donut-total">{{ total }}</span>
+      </div>
+    </div>
+
+    <ul class="legend" aria-label="Chart legend">
+      @for (seg of segments; track seg.label) {
+        <li class="legend-item">
+          <span class="legend-swatch" [style.background-color]="seg.color" aria-hidden="true"></span>
+          <span class="legend-label">{{ seg.label }}</span>
+          <span class="legend-value">{{ seg.value }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

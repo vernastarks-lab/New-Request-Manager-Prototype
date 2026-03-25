@@ -1,0 +1,82 @@
+.summary-root {
+  background: linear-gradient(135deg, #eff6ff 0%, #faf5ff 100%);
+  border: 2px solid #bfdbfe;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  padding: 0.5rem 1rem;
+  width: 100%;
+  text-align: left;
+
+  &--clickable {
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #dbeafe 0%, #f3e8ff 100%);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.summary-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.summary-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.summary-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-number {
+  font-size: 1.125rem;
+  font-weight: 700;
+
+  &--primary {
+    color: #0b5f7c;
+  }
+
+  &--green {
+    color: #15803d;
+  }
+
+  &--purple {
+    color: #7e22ce;
+  }
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.divider {
+  height: 1.5rem;
+  width: 1px;
+  background-color: #d1d5db;
+}
+
+.chevron-icon {
+  color: #4b5563;
+}

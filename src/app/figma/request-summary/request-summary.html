@@ -1,0 +1,48 @@
+<div
+  class="summary-root"
+  [class.summary-root--clickable]="isClickable()"
+  [attr.role]="isClickable() ? 'button' : null"
+  [attr.tabindex]="isClickable() ? 0 : null"
+  [attr.aria-expanded]="isClickable() ? isExpanded() : null"
+  (click)="isClickable() && toggled.emit()"
+  (keydown.enter)="isClickable() && toggled.emit()"
+  (keydown.space)="isClickable() && toggled.emit()"
+>
+  <div class="summary-inner">
+    <h3 class="summary-heading">Request Summary</h3>
+    <div class="summary-stats">
+      <div class="stat">
+        <span class="stat-number stat-number--primary">{{ studentsCount() }}</span>
+        <span class="stat-label">Students</span>
+      </div>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="stat">
+        <span class="stat-number stat-number--primary">{{ blocksCount() }}</span>
+        <span class="stat-label">Blocks</span>
+      </div>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="stat">
+        <span class="stat-number stat-number--green">{{ agenciesCount() }}</span>
+        <span class="stat-label">Agencies</span>
+      </div>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="stat">
+        <span class="stat-number stat-number--purple">{{ requestsCount() }}</span>
+        <span class="stat-label">Requests</span>
+      </div>
+
+      @if (isClickable()) {
+        <div class="divider" aria-hidden="true"></div>
+        @if (isExpanded()) {
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon" aria-hidden="true">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon" aria-hidden="true">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        }
+      }
+    </div>
+  </div>
+</div>

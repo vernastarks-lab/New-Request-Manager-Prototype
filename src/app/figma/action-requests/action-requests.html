@@ -1,0 +1,741 @@
+<!-- ── Main agency table ── -->
+<div class="ar-table-wrapper">
+  <table class="ar-table" aria-label="Action Requests">
+    <thead>
+      <tr class="ar-head-row">
+        <th class="ar-th ar-th--check" scope="col">
+          <input
+            type="checkbox"
+            class="ar-checkbox"
+            [checked]="allSelected()"
+            (change)="toggleAllAgencies()"
+            aria-label="Select all agencies"
+          />
+        </th>
+        <th class="ar-th ar-th--agency" scope="col">
+          Agency
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#e05252" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ar-sort-icon">
+            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/>
+          </svg>
+        </th>
+        <!-- Custom agency attr columns — inserted after Agency, before fixed cols -->
+        @for (attr of agencyAttrColumnOrder(); track attr.id) {
+          @if (!agencyHiddenAttrs().has(attr.id)) {
+            <th class="ar-th" scope="col">{{ attr.name }}</th>
+          }
+        }
+        <!-- Fixed right columns -->
+        <th class="ar-th ar-th--icon" scope="col">
+          <div class="ar-icon-th">
+            <span>Email</span>
+            <input
+              type="checkbox"
+              class="ar-checkbox"
+              [checked]="emailAllChecked()"
+              (change)="emailAllChecked.update(v => !v)"
+              aria-label="Select all email"
+            />
+          </div>
+        </th>
+        <th class="ar-th ar-th--icon" scope="col">
+          <div class="ar-icon-th">
+            <span>Partner</span>
+            <input
+              type="checkbox"
+              class="ar-checkbox"
+              [checked]="partnerAllChecked()"
+              (change)="partnerAllChecked.update(v => !v)"
+              aria-label="Select all partner"
+            />
+          </div>
+        </th>
+        <th class="ar-th ar-th--actioned" scope="col">Actioned</th>
+        <!-- Cog column — menu rendered outside <table> for correct z-index -->
+        <th class="ar-th ar-th--cog" scope="col">
+          <div class="ar-agency-cog-wrapper">
+            <button
+              class="ar-cog-btn"
+              type="button"
+              (click)="showAgencyColMenu.update(v => !v); $event.stopPropagation()"
+              [attr.aria-expanded]="showAgencyColMenu()"
+              aria-label="Show or hide columns"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (agency of agencies; track agency.id) {
+        <!-- Agency row -->
+        <tr class="ar-row" [class.ar-row--selected]="selectedAgencies().has(agency.id)">
+          <td class="ar-td ar-td--check">
+            <input
+              type="checkbox"
+              class="ar-checkbox"
+              [checked]="selectedAgencies().has(agency.id)"
+              (change)="toggleAgency(agency.id)"
+              [attr.aria-label]="'Select ' + agency.name"
+            />
+          </td>
+          <td class="ar-td ar-td--agency">
+            <div class="ar-agency-cell">
+              <button
+                class="ar-expand-btn"
+                type="button"
+                (click)="toggleRow(agency.id)"
+                [attr.aria-expanded]="expandedRows().has(agency.id)"
+                [attr.aria-label]="(expandedRows().has(agency.id) ? 'Collapse' : 'Expand') + ' ' + agency.name"
+              >
+                @if (expandedRows().has(agency.id)) {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                }
+              </button>
+              <span class="ar-agency-name">{{ agency.name }}</span>
+            </div>
+          </td>
+          <!-- Custom attr cells — inserted after Agency -->
+          @for (attr of agencyAttrColumnOrder(); track attr.id) {
+            @if (!agencyHiddenAttrs().has(attr.id)) {
+              <td class="ar-td">{{ getAgencyAttrValue(agency.name, attr.id) }}</td>
+            }
+          }
+          <!-- Fixed right cells -->
+          <td class="ar-td ar-td--icon">
+            <input type="checkbox" class="ar-checkbox" [checked]="agency.emailChecked" [attr.aria-label]="'Email for ' + agency.name" />
+          </td>
+          <td class="ar-td ar-td--icon">
+            <input type="checkbox" class="ar-checkbox" [checked]="agency.partnerChecked" [attr.aria-label]="'Partner for ' + agency.name" />
+          </td>
+          <td class="ar-td ar-td--actioned">
+            {{ agency.actionedItems }}/{{ agency.totalItems }} Items Actioned
+          </td>
+          <td class="ar-td ar-td--cog"></td>
+        </tr>
+
+        <!-- Expanded nested requests -->
+        @if (expandedRows().has(agency.id)) {
+          <tr class="ar-expanded-row">
+            <td colspan="100" class="ar-expanded-cell">
+              <div class="ar-nested-container">
+                <div class="ar-nested-scroll">
+                  <table class="ar-nested-table" [attr.aria-label]="'Requests for ' + agency.name">
+                    <thead>
+                      <tr class="ar-nested-head-row">
+                        <th class="ar-nth ar-nth--check" scope="col">
+                          <input type="checkbox" class="ar-checkbox" aria-label="Select all requests" />
+                        </th>
+                        <th class="ar-nth ar-nth--id" scope="col">
+                          Request ID
+                          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e05252" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ar-sort-icon">
+                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="6 13 12 19 18 13"/>
+                          </svg>
+                        </th>
+                        @for (colId of nestedColumnOrder(); track colId) {
+                          @switch (colId) {
+                            @case ('groupCode') {
+                              @if (nestedColVisibility().groupCode) {
+                                <th class="ar-nth ar-nth--grp" scope="col">Group Code</th>
+                              }
+                            }
+                            @case ('student') {
+                              @if (nestedColVisibility().student) {
+                                <th class="ar-nth ar-nth--student" scope="col">Student</th>
+                              }
+                            }
+                            @case ('requestedExperience') {
+                              @if (nestedColVisibility().requestedExperience) {
+                                <th class="ar-nth ar-nth--exp" scope="col">Requested Experience</th>
+                              }
+                            }
+                            @case ('requestDates') {
+                              @if (nestedColVisibility().requestDates) {
+                                <th class="ar-nth ar-nth--reqdate" scope="col">Request Dates</th>
+                              }
+                            }
+                            @case ('numberOfRequests') {
+                              @if (nestedColVisibility().numberOfRequests) {
+                                <th class="ar-nth ar-nth--num" scope="col">Number of Requests</th>
+                              }
+                            }
+                            @default {
+                              @if (!nestedHiddenAttrs().has(colId)) {
+                                <th class="ar-nth ar-nth--attr" scope="col">{{ getNestedAttrName(colId) }}</th>
+                              }
+                            }
+                          }
+                        }
+                        <th class="ar-nth ar-nth--status" scope="col">Request Status</th>
+                        <th class="ar-nth ar-nth--comms" scope="col">Communication Status</th>
+                        <!-- Nested cog column -->
+                        <th class="ar-nth ar-nth--cog" scope="col">
+                          <div class="ar-nested-cog-wrapper">
+                            <button
+                              class="ar-cog-btn"
+                              type="button"
+                              (click)="showNestedColMenu.update(v => !v); $event.stopPropagation()"
+                              [attr.aria-expanded]="showNestedColMenu()"
+                              aria-label="Show or hide nested columns"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                              </svg>
+                            </button>
+                            @if (showNestedColMenu()) {
+                              <div class="fp-col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+                                <div class="fp-header">
+                                  <span class="fp-title">Columns</span>
+                                  <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
+                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                  </button>
+                                </div>
+                                <div class="fp-body">
+                                  <div class="fp-section-heading">
+                                    <div class="fp-section-heading-info">
+                                      <span>Columns in this view</span>
+                                      <span class="fp-col-count-sub">Includes Checkbox column</span>
+                                    </div>
+                                    <span class="fp-col-count-badge">{{ nestedColInUse() }} / {{ nestedColLimit }}</span>
+                                  </div>
+                                  <div class="fp-list">
+                                    <div class="fp-row">
+                                      <span class="fp-label">Request ID</span>
+                                      <button class="fp-toggle fp-toggle--locked" type="button" disabled
+                                        aria-label="Request ID column is always visible" title="This column is always visible">
+                                      </button>
+                                    </div>
+                                    @for (col of nestedColDefs; track col.key) {
+                                      @if (nestedColVisibility()[col.key]) {
+                                        <div class="fp-row">
+                                          <span class="fp-drag" aria-hidden="true">
+                                            <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                                          </span>
+                                          <span class="fp-label">{{ col.label }}</span>
+                                          <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                                            [attr.aria-label]="'Remove ' + col.label + ' from view'"
+                                            (click)="toggleNestedCol(col.key)"></button>
+                                        </div>
+                                      }
+                                    }
+                                    @for (attr of nestedAttrColumnOrder(); track attr.id) {
+                                      @if (!nestedHiddenAttrs().has(attr.id)) {
+                                        <div class="fp-row">
+                                          <span class="fp-drag" aria-hidden="true">
+                                            <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                                          </span>
+                                          <span class="fp-label">{{ attr.name }}</span>
+                                          <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                                            [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                                            (click)="toggleNestedAttrColumn(attr.id)"></button>
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                  <hr class="fp-divider" />
+                                  <div class="fp-section-heading">
+                                    <span>Available columns ({{ nestedColsAvailable().length + nestedAttrsAvailable().length }})</span>
+                                  </div>
+                                  <div class="fp-attr-search-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <input class="fp-attr-search" type="search" placeholder="Search student attribute"
+                                      [value]="nestedAttrSearchQuery()"
+                                      (input)="nestedAttrSearchQuery.set($any($event.target).value)"
+                                      aria-label="Search student attribute" autocomplete="off" />
+                                  </div>
+                                  @if (nestedColAtCapacity()) {
+                                    <p class="fp-col-limit-msg" role="alert">Column limit of {{ nestedColLimit }} reached. Remove a column to add more.</p>
+                                  }
+                                  @if (nestedAttrSearchQuery().trim()) {
+                                    @if (nestedErrefSearchResults().length > 0) {
+                                      <div class="fp-attr-results">
+                                        @for (attr of nestedErrefSearchResults(); track attr.id) {
+                                          <button class="fp-attr-result-item" type="button"
+                                            [disabled]="nestedColAtCapacity()"
+                                            [attr.aria-label]="'Add ' + attr.name + ' column'"
+                                            (click)="addNestedAttrColumn(attr)">
+                                            <div class="fp-attr-result-text">
+                                              <span class="fp-attr-result-name">{{ attr.name }}</span>
+                                              <span class="fp-attr-result-id">{{ attr.id }}</span>
+                                            </div>
+                                            <span class="fp-toggle" aria-hidden="true"></span>
+                                          </button>
+                                        }
+                                      </div>
+                                    }
+                                  }
+                                  @if (nestedColsAvailable().length > 0 || nestedAttrsAvailable().length > 0) {
+                                      <div class="fp-list fp-list--available">
+                                        @for (col of nestedColsAvailable(); track col.key) {
+                                          <div class="fp-row">
+                                            <span class="fp-label fp-label--muted">{{ col.label }}</span>
+                                            <button class="fp-toggle" type="button"
+                                              [title]="nestedColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                                              [attr.aria-label]="'Add ' + col.label + ' to view'"
+                                              [disabled]="nestedColAtCapacity()"
+                                              (click)="toggleNestedCol(col.key)"></button>
+                                          </div>
+                                        }
+                                        @for (attr of nestedAttrsAvailable(); track attr.id) {
+                                          <div class="fp-row">
+                                            <span class="fp-label fp-label--muted">{{ attr.name }}</span>
+                                            <div class="fp-row-actions">
+                                              <button class="fp-action-btn fp-action-btn--danger" type="button" title="Delete column"
+                                                [attr.aria-label]="'Delete ' + attr.name" tabindex="-1"
+                                                (click)="removeNestedAttrColumn(attr.id); $event.stopPropagation()">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                              </button>
+                                            </div>
+                                            <button class="fp-toggle" type="button"
+                                              [title]="nestedColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                                              [attr.aria-label]="'Add ' + attr.name + ' to view'"
+                                              [disabled]="nestedColAtCapacity()"
+                                              (click)="toggleNestedAttrColumn(attr.id)"></button>
+                                          </div>
+                                        }
+                                      </div>
+                                    }
+                                </div>
+                                <div class="fp-footer">
+                                  <button class="fp-footer-apply-btn" type="button"
+                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">Apply</button>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (req of agency.requests; track req.id) {
+                        <tr class="ar-nested-row" [class.ar-nested-row--selected]="selectedRequests().has(req.id)">
+                          <td class="ar-ntd ar-ntd--check">
+                            <input
+                              type="checkbox"
+                              class="ar-checkbox"
+                              [checked]="selectedRequests().has(req.id)"
+                              (change)="toggleRequest(req.id)"
+                              [attr.aria-label]="'Select request ' + req.id"
+                            />
+                          </td>
+                          <td class="ar-ntd ar-ntd--id">
+                            <button class="ar-link-btn" type="button">{{ req.id }}</button>
+                          </td>
+                          @for (colId of nestedColumnOrder(); track colId) {
+                            @switch (colId) {
+                              @case ('groupCode') {
+                                @if (nestedColVisibility().groupCode) {
+                                  <td class="ar-ntd">{{ req.groupCode }}</td>
+                                }
+                              }
+                              @case ('student') {
+                                @if (nestedColVisibility().student) {
+                                  <td class="ar-ntd ar-ntd--student">
+                                    <button class="ar-link-btn" type="button">{{ req.studentName }}</button>
+                                    <div class="ar-student-sub">({{ req.studentCode }})</div>
+                                    <div class="ar-student-sub">{{ req.studentDetails }}</div>
+                                  </td>
+                                }
+                              }
+                              @case ('requestedExperience') {
+                                @if (nestedColVisibility().requestedExperience) {
+                                  <td class="ar-ntd">{{ req.requestedExperience }}</td>
+                                }
+                              }
+                              @case ('requestDates') {
+                                @if (nestedColVisibility().requestDates) {
+                                  <td class="ar-ntd ar-ntd--dates">
+                                    <div>{{ req.requestDateLabel }}</div>
+                                    <div class="ar-date-range">{{ req.requestDateRange }}</div>
+                                  </td>
+                                }
+                              }
+                              @case ('numberOfRequests') {
+                                @if (nestedColVisibility().numberOfRequests) {
+                                  <td class="ar-ntd ar-ntd--num">{{ req.numberOfRequests }}</td>
+                                }
+                              }
+                              @default {
+                                @if (!nestedHiddenAttrs().has(colId)) {
+                                  <td class="ar-ntd">{{ getNestedAttrValue(req.id, colId) }}</td>
+                                }
+                              }
+                            }
+                          }
+                          <td class="ar-ntd">
+                            @switch (req.requestStatus) {
+                              @case ('Draft') {
+                                <div class="ar-status">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                  Draft
+                                </div>
+                              }
+                              @case ('Pending') {
+                                <div class="ar-status ar-status--pending">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                  Pending
+                                </div>
+                              }
+                              @case ('Offer Received') {
+                                <div class="ar-status ar-status--offer">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                                  Offer Received
+                                </div>
+                              }
+                              @case ('Rejected - Acknowledgement Required') {
+                                <div class="ar-status ar-status--rejected">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                  Rejected – Acknowledgement Required
+                                </div>
+                              }
+                            }
+                          </td>
+                          <td class="ar-ntd ar-ntd--comms">
+                            <button class="ar-comms-btn" type="button" aria-label="Email status">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                              </svg>
+                            </button>
+                            <button class="ar-comms-btn ar-comms-btn--action" type="button" aria-label="Status indicator">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="8" fill="currentColor"/>
+                              </svg>
+                            </button>
+                          </td>
+                          <td class="ar-ntd ar-ntd--cog"></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Nested pagination -->
+                <div class="ar-pagination">
+                  <div class="ar-pager">
+                    <button class="ar-pager-btn" type="button" aria-label="First page">|&lt;</button>
+                    <button class="ar-pager-btn" type="button" aria-label="Previous page">&lt;</button>
+                    <button class="ar-pager-btn ar-pager-btn--active" type="button" aria-current="page">1</button>
+                    <button class="ar-pager-btn" type="button" aria-label="Next page">&gt;</button>
+                    <button class="ar-pager-btn" type="button" aria-label="Last page">&gt;|</button>
+                    <select class="ar-page-size" aria-label="Items per page"><option value="40">40</option><option value="20">20</option><option value="10">10</option></select>
+                    <span class="ar-page-size-label">items per page</span>
+                  </div>
+                  <span class="ar-page-info">1-{{ agency.requests.length }} of {{ agency.requests.length }} items</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <!-- Agency col-menu rendered outside <table> so it layers above expanded rows -->
+  @if (showAgencyColMenu()) {
+    <div class="fp-col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+      <div class="fp-header">
+        <span class="fp-title">Columns</span>
+        <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
+          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set('')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="fp-body">
+        <div class="fp-section-heading">
+          <div class="fp-section-heading-info">
+            <span>Columns in this view</span>
+            <span class="fp-col-count-sub">Includes Checkbox column</span>
+          </div>
+          <span class="fp-col-count-badge">{{ agencyColInUse() }} / {{ agencyColLimit }}</span>
+        </div>
+        <div class="fp-list">
+          <div class="fp-row">
+            <span class="fp-label">Agency</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Agency column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          <div class="fp-row">
+            <span class="fp-label">Email</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Email column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          <div class="fp-row">
+            <span class="fp-label">Partner</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Partner column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          <div class="fp-row">
+            <span class="fp-label">Actioned</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Actioned column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          @for (attr of agencyAttrColumnOrder(); track attr.id) {
+            @if (!agencyHiddenAttrs().has(attr.id)) {
+              <div class="fp-row">
+                <span class="fp-drag" aria-hidden="true">
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                </span>
+                <span class="fp-label">{{ attr.name }}</span>
+                <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                  [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                  (click)="toggleAgencyAttrColumn(attr.id)"></button>
+              </div>
+            }
+          }
+        </div>
+        <hr class="fp-divider" />
+        <div class="fp-section-heading">
+          <span>Available columns ({{ agencyAttrsAvailable().length }})</span>
+        </div>
+        <div class="fp-attr-search-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="fp-attr-search" type="search" placeholder="Search agency attribute"
+            [value]="agencyAttrSearchQuery()"
+            (input)="agencyAttrSearchQuery.set($any($event.target).value)"
+            aria-label="Search agency attribute" autocomplete="off" />
+        </div>
+        @if (agencyColAtCapacity()) {
+          <p class="fp-col-limit-msg" role="alert">Column limit of {{ agencyColLimit }} reached. Remove a column to add more.</p>
+        }
+        @if (agencyAttrSearchQuery().trim()) {
+          @if (agencyErrefSearchResults().length > 0) {
+            <div class="fp-attr-results">
+              @for (attr of agencyErrefSearchResults(); track attr.id) {
+                <button class="fp-attr-result-item" type="button"
+                  [disabled]="agencyColAtCapacity()"
+                  [attr.aria-label]="'Add ' + attr.name + ' column'"
+                  (click)="addAgencyAttrColumn(attr)">
+                  <div class="fp-attr-result-text">
+                    <span class="fp-attr-result-name">{{ attr.name }}</span>
+                    <span class="fp-attr-result-id">{{ attr.id }}</span>
+                  </div>
+                  <span class="fp-toggle" aria-hidden="true"></span>
+                </button>
+              }
+            </div>
+          }
+        }
+        @if (agencyAttrsAvailable().length > 0) {
+            <div class="fp-list fp-list--available">
+              @for (attr of agencyAttrsAvailable(); track attr.id) {
+                <div class="fp-row">
+                  <span class="fp-label fp-label--muted">{{ attr.name }}</span>
+                  <div class="fp-row-actions">
+                    <button class="fp-action-btn fp-action-btn--danger" type="button" title="Delete column"
+                      [attr.aria-label]="'Delete ' + attr.name" tabindex="-1"
+                      (click)="removeAgencyAttrColumn(attr.id); $event.stopPropagation()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                  <button class="fp-toggle" type="button"
+                    [title]="agencyColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                    [attr.aria-label]="'Add ' + attr.name + ' to view'"
+                    [disabled]="agencyColAtCapacity()"
+                    (click)="toggleAgencyAttrColumn(attr.id)"></button>
+                </div>
+              }
+            </div>
+          }
+      </div>
+      <div class="fp-footer">
+        <button class="fp-footer-apply-btn" type="button"
+          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set('')">Apply</button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Outer pagination -->
+<div class="ar-pagination ar-pagination--outer">
+  <div class="ar-pager">
+    <button class="ar-pager-btn" type="button" aria-label="First page">|&lt;</button>
+    <button class="ar-pager-btn" type="button" aria-label="Previous page">&lt;</button>
+    <button class="ar-pager-btn ar-pager-btn--active" type="button" aria-current="page">1</button>
+    <button class="ar-pager-btn" type="button" aria-label="Next page">&gt;</button>
+    <button class="ar-pager-btn" type="button" aria-label="Last page">&gt;|</button>
+    <select class="ar-page-size" aria-label="Items per page"><option value="40">40</option><option value="20">20</option><option value="10">10</option></select>
+    <span class="ar-page-size-label">items per page</span>
+  </div>
+  <span class="ar-page-info">1–{{ agencies.length }} of {{ agencies.length }} items</span>
+</div>
+
+<!-- ── Send Request Modal ── -->
+@if (showSendModal()) {
+  <div
+    class="ar-modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ar-modal-title"
+    (click)="closeSendModal()"
+  >
+    <div class="ar-modal" (click)="$event.stopPropagation()">
+
+      <!-- Modal header -->
+      <div class="ar-modal-header">
+        <h2 class="ar-modal-title" id="ar-modal-title">Request to InPlace Partners</h2>
+        <button class="ar-modal-close" type="button" aria-label="Close dialog" (click)="closeSendModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ar-modal-subheader">
+        <span class="ar-modal-subtitle">Discipline: Paramedicine</span>
+      </div>
+
+      <!-- Modal body -->
+      <div class="ar-modal-body">
+
+        <!-- Info banner -->
+        <div class="ar-modal-banner" role="note">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ar-modal-banner-icon">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+          </svg>
+          <span>Requests will be sent to the selected InPlace partners. Please review and confirm the placement type and year level for each request before sending.</span>
+        </div>
+
+        <!-- Modal toolbar -->
+        <div class="ar-modal-toolbar">
+          <div class="ar-modal-bulk-wrapper">
+            <button
+              class="btn btn--outline btn--sm"
+              type="button"
+              [disabled]="selectedModalRows().size === 0"
+              (click)="selectedModalRows().size > 0 && showModalBulkDropdown.update(v => !v); $event.stopPropagation()"
+              [attr.aria-expanded]="showModalBulkDropdown()"
+              aria-haspopup="true"
+            >
+              @if (selectedModalRows().size > 0) {
+                Bulk Action ({{ selectedModalRows().size }} {{ selectedModalRows().size === 1 ? 'Item' : 'Items' }})
+              } @else {
+                Bulk Action
+              }
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+            @if (showModalBulkDropdown()) {
+              <div class="dropdown-menu" role="menu" (click)="$event.stopPropagation()">
+                <button class="dropdown-item" role="menuitem" type="button" (click)="showModalBulkDropdown.set(false)">Send Selected</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal table -->
+        <div class="ar-modal-table-wrapper">
+          <table class="ar-modal-table" aria-label="Requests to send to InPlace Partners">
+            <thead>
+              <tr class="ar-modal-head-row">
+                <th class="ar-mth ar-mth--check" scope="col">
+                  <input
+                    type="checkbox"
+                    class="ar-checkbox"
+                    [checked]="allModalSelected()"
+                    (change)="toggleAllModalRows()"
+                    aria-label="Select all requests"
+                  />
+                </th>
+                <th class="ar-mth ar-mth--id" scope="col">Request ID</th>
+                <th class="ar-mth ar-mth--dates" scope="col">Requested Dates</th>
+                <th class="ar-mth ar-mth--agency" scope="col">Agency</th>
+                <th class="ar-mth ar-mth--partner" scope="col">Partner</th>
+                <th class="ar-mth ar-mth--region" scope="col">Region</th>
+                <th class="ar-mth ar-mth--pdiscipline" scope="col">Partner Discipline</th>
+                <th class="ar-mth ar-mth--pcampus" scope="col">Partner Campus</th>
+                <th class="ar-mth ar-mth--pagency" scope="col">Partner Agency</th>
+                <th class="ar-mth ar-mth--ptype" scope="col">Placement Type</th>
+                <th class="ar-mth ar-mth--ylevel" scope="col">Year Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of modalRequests(); track item.req.id) {
+                <tr class="ar-modal-row" [class.ar-modal-row--selected]="selectedModalRows().has(item.req.id)">
+                  <td class="ar-mtd ar-mtd--check">
+                    <input
+                      type="checkbox"
+                      class="ar-checkbox"
+                      [checked]="selectedModalRows().has(item.req.id)"
+                      (change)="toggleModalRow(item.req.id)"
+                      [attr.aria-label]="'Select request ' + item.req.id"
+                    />
+                  </td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.req.id }}</div></td>
+                  <td class="ar-mtd ar-mtd--dates"><div class="ar-mtd-cell">{{ item.req.requestDateRange }}</div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell"><button class="ar-link-btn" type="button">{{ item.agency.name }}</button></div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.agency.partner }}</div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.agency.region }}</div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.agency.partnerDiscipline }}</div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.agency.partnerCampus }}</div></td>
+                  <td class="ar-mtd"><div class="ar-mtd-cell">{{ item.agency.partnerAgency }}</div></td>
+                  <td class="ar-mtd ar-mtd--select">
+                    <select
+                      class="ar-modal-select"
+                      [value]="getModalPlacementType(item.req.id)"
+                      (change)="setModalPlacementType(item.req.id, $any($event.target).value)"
+                      aria-label="Placement type"
+                    >
+                      <option value="Standard">Standard</option>
+                      <option value="Clinical">Clinical</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="Community">Community</option>
+                    </select>
+                  </td>
+                  <td class="ar-mtd ar-mtd--select">
+                    <select
+                      class="ar-modal-select"
+                      [value]="getModalYearLevel(item.req.id)"
+                      (change)="setModalYearLevel(item.req.id, $any($event.target).value)"
+                      aria-label="Year level"
+                    >
+                      <option value="Year 1">Year 1</option>
+                      <option value="Year 2">Year 2</option>
+                      <option value="Year 3">Year 3</option>
+                      <option value="Year 4">Year 4</option>
+                    </select>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Modal pagination -->
+        <div class="ar-pagination">
+          <div class="ar-pager">
+            <button class="ar-pager-btn" type="button" aria-label="First page">|&lt;</button>
+            <button class="ar-pager-btn" type="button" aria-label="Previous page">&lt;</button>
+            <button class="ar-pager-btn ar-pager-btn--active" type="button" aria-current="page">1</button>
+            <button class="ar-pager-btn" type="button" aria-label="Next page">&gt;</button>
+            <button class="ar-pager-btn" type="button" aria-label="Last page">&gt;|</button>
+            <select class="ar-page-size" aria-label="Items per page"><option value="40">40</option><option value="20">20</option><option value="10">10</option></select>
+            <span class="ar-page-size-label">items per page</span>
+          </div>
+          <span class="ar-page-info">1–{{ modalRequests().length }} of {{ modalRequests().length }} items</span>
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="ar-modal-footer">
+        <button class="btn btn--secondary" type="button" (click)="closeSendModal()">Cancel</button>
+        <button class="btn btn--primary" type="button">Send All</button>
+      </div>
+
+    </div>
+  </div>
+}

@@ -1,0 +1,44 @@
+<div class="blocks-card">
+  <div class="blocks-header">
+    <h3 class="blocks-title">Placement Blocks (Click to View)</h3>
+    <div class="blocks-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="link-icon" aria-hidden="true">
+        <path d="M15 3h6v6"/>
+        <path d="M10 14 21 3"/>
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+      </svg>
+      <a href="#" class="link-text">View InPlace Network Capacity</a>
+    </div>
+  </div>
+
+  <div class="blocks-list" role="list">
+    @for (block of blocks; track block.name) {
+      <div class="block-item" role="listitem">
+        <div class="block-name-row">
+          <div class="block-name">{{ block.name }}</div>
+          <div class="block-period">{{ block.period }}</div>
+        </div>
+        <div class="block-stats">
+          <div class="stat-col">
+            <div class="stat-value" [style.color]="block.students.color">
+              {{ block.students.value }} / {{ block.students.total ?? 0 }}
+            </div>
+            <div class="stat-label">Students</div>
+          </div>
+          <div class="stat-col">
+            <div class="stat-value" [style.color]="block.requests.color">
+              {{ block.requests.value }}
+            </div>
+            <div class="stat-label">Requests</div>
+          </div>
+          <div class="stat-col">
+            <div class="stat-value" [style.color]="block.placements.color">
+              {{ block.placements.value }}
+            </div>
+            <div class="stat-label">Placements</div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

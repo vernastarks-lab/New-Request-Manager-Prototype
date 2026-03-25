@@ -1,0 +1,255 @@
+<div class="details-card">
+  <div class="details-header">
+    <h3 class="details-title">Request Details</h3>
+  </div>
+
+  <div class="details-body">
+    <!-- Requirements -->
+    <div class="inherit-section">
+      <p class="inherit-section-label">Requirements</p>
+      <div class="inherit-row">
+        <span class="inherit-text">
+          @if (isOverrideMode()) {
+            Overriding individual student requirements
+          } @else {
+            Inherited from student's experience requirement
+          }
+        </span>
+        <button
+          type="button"
+          class="override-btn"
+          (click)="isOverrideMode.update(v => !v)"
+        >
+          {{ isOverrideMode() ? 'Reset to Inherited' : 'Override Requirements' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="override-panel" [class.override-panel--open]="isOverrideMode()">
+      <div class="two-col">
+        <!-- Experience -->
+        <div class="field">
+          <label class="field-label" for="experience-select">
+            Experience <span class="required" aria-label="required">*</span>
+          </label>
+          <select
+            id="experience-select"
+            class="field-select"
+            [ngModel]="currentSelection()"
+            (ngModelChange)="addExperience($event)"
+          >
+            <option value=""></option>
+            @for (exp of sortedExperiences; track exp) {
+              <option [value]="exp">{{ exp }}</option>
+            }
+          </select>
+          @if (selectedExperiences().length > 0) {
+            <div class="tag-list" role="list">
+              @for (exp of selectedExperiences(); track exp) {
+                <div class="tag" role="listitem">
+                  <span>{{ exp }}</span>
+                  <button
+                    type="button"
+                    class="tag-remove"
+                    (click)="removeExperience(exp)"
+                    [attr.aria-label]="'Remove ' + exp"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Duration + Unit -->
+        <div class="duration-row">
+          <div class="field field--flex">
+            <label class="field-label" for="duration-input">Duration</label>
+            <input
+              id="duration-input"
+              type="number"
+              placeholder="0.00"
+              class="field-input"
+              [ngModel]="durationValue()"
+              (ngModelChange)="durationValue.set($event)"
+            />
+          </div>
+          <div class="field field--flex">
+            <label class="field-label" for="unit-select">Unit of Measure</label>
+            <select
+              id="unit-select"
+              class="field-select"
+              [ngModel]="unitOfMeasureValue()"
+              (ngModelChange)="unitOfMeasureValue.set($event)"
+            >
+              <option>Hour</option>
+              <option>Day</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Specialism (full width) -->
+        <div class="field field--full">
+          <label class="field-label" for="specialism-select">Specialism</label>
+          <select
+            id="specialism-select"
+            class="field-select"
+            [ngModel]="currentSpecialismSel()"
+            (ngModelChange)="addSpecialism($event)"
+          >
+            <option value=""></option>
+            @for (spec of sortedSpecialisms; track spec) {
+              <option [value]="spec">{{ spec }}</option>
+            }
+          </select>
+          @if (selectedSpecialisms().length > 0) {
+            <div class="tag-list" role="list">
+              @for (spec of selectedSpecialisms(); track spec) {
+                <div class="tag" role="listitem">
+                  <span>{{ spec }}</span>
+                  <button
+                    type="button"
+                    class="tag-remove"
+                    (click)="removeSpecialism(spec)"
+                    [attr.aria-label]="'Remove ' + spec"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Placement Dates -->
+    <div class="inherit-section">
+      <p class="inherit-section-label">Placement Dates</p>
+      <div class="inherit-row">
+        <span class="inherit-text">
+          @if (isPlacementOverrideMode()) {
+            Overriding placement block dates for all selected students
+          } @else {
+            Inherited from student's placement block
+          }
+        </span>
+        <button
+          type="button"
+          class="override-btn"
+          (click)="isPlacementOverrideMode.update(v => !v)"
+        >
+          {{ isPlacementOverrideMode() ? 'Reset to inherited' : 'Override Placement Dates' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="override-panel" [class.override-panel--open]="isPlacementOverrideMode()">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label">Placement Block</label>
+          <div class="field-readonly">Other</div>
+        </div>
+        <div class="field">
+          <div class="date-header">
+            <label class="field-label" for="override-start">Start Date <span class="required" aria-label="required">*</span></label>
+            <label class="field-label" for="override-end">End Date <span class="required" aria-label="required">*</span></label>
+          </div>
+          <div class="date-range">
+            <input
+              id="override-start"
+              type="date"
+              class="field-input"
+              [value]="overridePlacementDates().start"
+              (change)="setOverrideDateField('start', $any($event.target).value)"
+            />
+            <span aria-hidden="true">→</span>
+            <input
+              id="override-end"
+              type="date"
+              class="field-input"
+              [value]="overridePlacementDates().end"
+              (change)="setOverrideDateField('end', $any($event.target).value)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="checkbox-group">
+      <div class="checkbox-card">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            class="checkbox-input"
+            [checked]="hideStudentDetails()"
+            (change)="hideStudentDetails.update(v => !v)"
+          />
+          <div>
+            <div class="checkbox-title">Hide Student Details</div>
+            <div class="checkbox-desc">Student name and ID will be hidden from the agency when this request is sent</div>
+          </div>
+        </label>
+      </div>
+      <div class="checkbox-card">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            class="checkbox-input"
+            [checked]="notFlexibleDates()"
+            (change)="notFlexibleDates.update(v => !v)"
+          />
+          <div>
+            <div class="checkbox-title">Not Flexible Dates</div>
+            <div class="checkbox-desc">If selected, agencies will not be able to modify the requested dates</div>
+          </div>
+        </label>
+      </div>
+      <div class="checkbox-card">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            class="checkbox-input"
+            [checked]="notFlexibleExperience()"
+            (change)="notFlexibleExperience.update(v => !v)"
+          />
+          <div>
+            <div class="checkbox-title">Not Flexible Experience and Duration</div>
+            <div class="checkbox-desc">If selected, agencies will not be able to modify the requested experience and duration</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="field">
+      <label class="field-label" for="activity-input">Activity (optional)</label>
+      <textarea
+        id="activity-input"
+        class="field-textarea"
+        rows="2"
+        [ngModel]="activityText()"
+        (ngModelChange)="activityText.set($event)"
+      ></textarea>
+    </div>
+
+    <!-- Comment -->
+    <div class="field">
+      <label class="field-label" for="comment-input">Comment (optional)</label>
+      <textarea
+        id="comment-input"
+        class="field-textarea"
+        rows="2"
+        [ngModel]="commentText()"
+        (ngModelChange)="commentText.set($event)"
+      ></textarea>
+    </div>
+
+  </div>
+</div>

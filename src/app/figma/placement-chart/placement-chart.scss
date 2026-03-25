@@ -1,0 +1,76 @@
+.chart-card {
+  background-color: #fff;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  width: fit-content;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.chart-title {
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0 0 1rem;
+}
+
+.chart-body {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.donut-wrapper {
+  position: relative;
+  width: 8rem;
+  height: 8rem;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-total {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+}
+
+.legend-value {
+  font-weight: 400;
+}

@@ -1,0 +1,621 @@
+<div class="overlay" aria-hidden="true" (wheel)="onOverlayWheel($event)"></div>
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="aa-title">
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="aa-title">Add Agency</h2>
+      <button
+        class="sheet-close"
+        type="button"
+        (click)="closed.emit()"
+        aria-label="Close Add Agency panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <!-- Student details card -->
+      <div class="student-card">
+        <div class="student-card-name">{{ student().name }}</div>
+        <div class="student-card-meta">
+          <span>{{ student().block }}</span>
+          @if (student().period) {
+            <span class="meta-sep">·</span>
+            <span>{{ student().period }}</span>
+          }
+          @if (student().specialism) {
+            <span class="meta-sep">·</span>
+            <span>{{ student().specialism }}</span>
+          }
+          @if (student().location) {
+            <span class="meta-sep">·</span>
+            <span>{{ student().location }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Filter section -->
+      <div class="filter-section">
+        <div class="filter-grid">
+          <input
+            id="aa-search"
+            type="text"
+            class="field-input"
+            [value]="searchText()"
+            (input)="searchText.set($any($event.target).value)"
+            placeholder="Search Agencies"
+            aria-label="Search Agencies"
+          />
+          <select
+            id="aa-type"
+            class="field-select"
+            [value]="agencyType()"
+            (change)="agencyType.set($any($event.target).value)"
+            aria-label="Search Agency Type"
+          >
+            <option value="">Search Agency Type</option>
+            <option>Hospital</option>
+            <option>Ambulance</option>
+            <option>Community</option>
+          </select>
+          <select
+            id="aa-specialism"
+            class="field-select"
+            [value]="specialism()"
+            (change)="specialism.set($any($event.target).value)"
+            aria-label="Search Specialism"
+          >
+            <option value="">Search Specialism</option>
+            <option>Emergency Care</option>
+            <option>Critical Care</option>
+            <option>Intensive Care Paramedic</option>
+          </select>
+          <select
+            id="aa-categories"
+            class="field-select"
+            [value]="categories()"
+            (change)="categories.set($any($event.target).value)"
+            aria-label="Search Categories"
+          >
+            <option value="">Search Categories</option>
+            <option>Category A</option>
+            <option>Category B</option>
+          </select>
+          <select
+            id="aa-partner"
+            class="field-select"
+            [value]="integrationPartner()"
+            (change)="integrationPartner.set($any($event.target).value)"
+            aria-label="Search Integration Partner"
+          >
+            <option value="">Search Integration Partner</option>
+            <option>InPlace</option>
+            <option>MedConnect</option>
+          </select>
+          <select
+            id="aa-groups"
+            class="field-select"
+            [value]="groups()"
+            (change)="groups.set($any($event.target).value)"
+            aria-label="Search Groups"
+          >
+            <option value="">Search Groups</option>
+            <option>Group 1</option>
+            <option>Group 2</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="hasPlacements()"
+              (change)="hasPlacements.set($any($event.target).checked)"
+            />
+            Has Placements in this Allocation Group
+          </label>
+
+          <div class="filter-actions-right">
+            <div class="filter-btn-row">
+              <button class="btn btn--secondary btn--sm" type="button" (click)="clearFilters()">Clear</button>
+              <button class="btn btn--primary btn--sm" type="button">Filter</button>
+            </div>
+            <button class="btn btn--sm trial-match-btn" type="button" (click)="openTrialMatch.emit()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+              Trial Match
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agency table -->
+      <div class="table-wrapper">
+        <table class="agency-table" aria-label="Agencies">
+          <thead>
+            <tr class="table-head-row">
+              <th class="th" scope="col">Agency</th>
+              @for (colId of aaColumnOrder(); track colId) {
+                @switch (colId) {
+                  @case ('specialism') {
+                    @if (colVisibility().specialism) {
+                      <th class="th" scope="col">Specialism</th>
+                    }
+                  }
+                  @case ('ranking') {
+                    @if (colVisibility().ranking) {
+                      <th class="th th--num" scope="col">Ranking</th>
+                    }
+                  }
+                  @case ('location') {
+                    @if (colVisibility().location) {
+                      <th class="th" scope="col">Location</th>
+                    }
+                  }
+                  @case ('plc') {
+                    @if (colVisibility().plc) {
+                      <th class="th th--num" scope="col">
+                        Plc (LY+TY)
+                        <span class="th-tooltip-wrapper">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="th-tooltip-icon" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4"/><path d="M12 8h.01"/>
+                          </svg>
+                          <span class="th-tooltip-content" role="tooltip">
+                            Total Placements for this Discipline from Last Year and This Year onwards. Excludes Withdrawn/Rejected Placements.
+                          </span>
+                        </span>
+                      </th>
+                    }
+                  }
+                  @default {
+                    @if (!aaHiddenAttrColumns().has(colId)) {
+                      <th class="th" scope="col">{{ getAaAttrName(colId) }}</th>
+                    }
+                  }
+                }
+              }
+              <th class="th th--action" scope="col">Action</th>
+              <th class="th th--cog" scope="col">
+                <div class="col-menu-wrapper">
+                  <button
+                    class="col-settings-btn"
+                    type="button"
+                    (click)="showColMenu.update(v => !v)"
+                    [attr.aria-expanded]="showColMenu()"
+                    aria-label="Show or hide columns"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  @if (showColMenu()) {
+                    <div class="col-menu" role="dialog" aria-label="Column visibility" (click)="$event.stopPropagation()">
+                      <div class="aa-col-menu-heading">Show/Hide Columns</div>
+                      @for (col of colDefs; track col.key) {
+                        <label class="col-menu-item">
+                          <input
+                            type="checkbox"
+                            [checked]="colVisibility()[col.key]"
+                            (change)="toggleCol(col.key)"
+                          />
+                          {{ col.label }}
+                        </label>
+                      }
+                      @if (aaAddedAttrColumns().length > 0) {
+                        <div class="aa-col-menu-divider"></div>
+                        <div class="aa-col-menu-section-label">
+                          Custom
+                          <span class="aa-col-menu-remaining">({{ aaAttrRemaining() }} remaining)</span>
+                        </div>
+                        @for (attr of aaAttrColumnOrder(); track attr.id) {
+                          <div class="col-menu-item aa-col-menu-item--attr">
+                            <label class="aa-col-menu-item-label">
+                              <input
+                                type="checkbox"
+                                [checked]="!aaHiddenAttrColumns().has(attr.id)"
+                                (change)="toggleAaAttrColumn(attr.id)"
+                              />
+                              {{ attr.name }}
+                            </label>
+                            <div class="aa-reorder-btns">
+                              <button
+                                class="aa-reorder-btn"
+                                type="button"
+                                aria-label="Move up"
+                                [disabled]="aaColumnOrder().indexOf(attr.id) === 0"
+                                (click)="moveAaColUp(attr.id); $event.stopPropagation()"
+                              ><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="4"/><polyline points="7 9 12 4 17 9"/></svg></button>
+                              <button
+                                class="aa-reorder-btn"
+                                type="button"
+                                aria-label="Move down"
+                                [disabled]="aaColumnOrder().indexOf(attr.id) === aaColumnOrder().length - 1"
+                                (click)="moveAaColDown(attr.id); $event.stopPropagation()"
+                              ><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="7 15 12 20 17 15"/></svg></button>
+                            </div>
+                            <div class="aa-attr-options-wrapper">
+                              <button
+                                class="aa-attr-options-btn"
+                                type="button"
+                                [attr.aria-label]="'Options for ' + attr.name"
+                                (click)="toggleAaAttrOptions(attr.id); $event.stopPropagation()"
+                              >⋮</button>
+                              @if (aaOpenAttrOptionsId() === attr.id) {
+                                <div class="aa-attr-options-menu" role="menu">
+                                  <button
+                                    class="aa-attr-option-item aa-attr-option-item--danger"
+                                    type="button"
+                                    role="menuitem"
+                                    (click)="removeAaAttrColumn(attr.id); aaOpenAttrOptionsId.set(null)"
+                                  >Delete Column</button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      }
+                      <div class="aa-col-menu-divider"></div>
+                      <div class="aa-add-attr-wrapper">
+                        <button
+                          class="aa-add-attr-link"
+                          type="button"
+                          (click)="toggleAaErrefSearch(); $event.stopPropagation()"
+                        >
+                          + Include Agency Attribute
+                        </button>
+                        @if (aaShowErrefSearch()) {
+                          <div
+                            class="aa-erref-search-popover"
+                            role="dialog"
+                            aria-label="Search Attribute"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <div class="aa-erref-search-input-wrapper">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="aa-erref-search-icon">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.3-4.3"/>
+                              </svg>
+                              <input
+                                class="aa-erref-search-input"
+                                type="search"
+                                placeholder="Search Attribute"
+                                [value]="aaErrefSearchQuery()"
+                                (input)="aaErrefSearchQuery.set($any($event.target).value)"
+                                aria-label="Search Attribute"
+                                autocomplete="off"
+                              />
+                            </div>
+                            @if (aaErrefSearchResults().length > 0) {
+                              <div class="aa-erref-results">
+                                @for (attr of aaErrefSearchResults(); track attr.id) {
+                                  <div class="aa-erref-result-item">
+                                    <div class="aa-erref-result-info">
+                                      <span class="aa-erref-result-name">{{ attr.name }} <span class="aa-erref-result-id">({{ attr.id }})</span></span>
+                                      @if (attr.description) {
+                                        <span class="aa-erref-result-desc">{{ attr.description }}</span>
+                                      }
+                                    </div>
+                                    <button
+                                      class="aa-erref-add-btn"
+                                      type="button"
+                                      (click)="addAaAttrColumn(attr)"
+                                    >
+                                      Add as Column
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            } @else if (aaErrefSearchQuery().trim().length > 0) {
+                              <p class="aa-erref-no-results">No matching attributes found.</p>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (agency of filteredQueued(); track agency.name) {
+              <tr class="table-row"
+                [class.table-row--incompatible]="effectiveStatus(agency) === 'incompatible'"
+                [class.table-row--excluded]="effectiveStatus(agency) === 'excluded'"
+                (mousemove)="effectiveStatus(agency) === 'incompatible' && onIncompatibleMouseMove($event, agency.incompatibleReason ?? '')"
+                (mouseleave)="effectiveStatus(agency) === 'incompatible' && onIncompatibleMouseLeave()"
+              >
+                <td class="td td--name">
+                  <span [class.agency-name--excluded]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'">{{ agency.name }}</span>
+                </td>
+                @for (colId of aaColumnOrder(); track colId) {
+                  @switch (colId) {
+                    @case ('specialism') {
+                      @if (colVisibility().specialism) {
+                        <td class="td">{{ agency.specialism }}</td>
+                      }
+                    }
+                    @case ('ranking') {
+                      @if (colVisibility().ranking) {
+                        <td class="td td--num">
+                          <button class="ranking-num" type="button" (click)="openBreakdown(agency)" [attr.aria-label]="'View score breakdown for ' + agency.name">
+                            {{ agency.ranking }}
+                          </button>
+                        </td>
+                      }
+                    }
+                    @case ('location') {
+                      @if (colVisibility().location) {
+                        <td class="td">{{ agency.location }}</td>
+                      }
+                    }
+                    @case ('plc') {
+                      @if (colVisibility().plc) {
+                        <td class="td td--num">{{ agency.placements }}</td>
+                      }
+                    }
+                    @default {
+                      @if (!aaHiddenAttrColumns().has(colId)) {
+                        <td class="td">{{ getAaErrefValue(agency.name, colId) }}</td>
+                      }
+                    }
+                  }
+                }
+                <td class="td td--action">
+                  <button
+                    class="action-btn"
+                    [class.action-btn--planned]="effectiveStatus(agency) == null && getState(agency.name, true) === 'planned'"
+                    [class.action-btn--excluded]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                    type="button"
+                    [disabled]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                    (click)="togglePlanned(agency.name, true)"
+                  >
+                    {{ (effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible') ? 'Excluded' : (getState(agency.name, true) === 'planned' ? 'Planned' : 'Select') }}
+                  </button>
+                </td>
+                <td class="td td--icon">
+                  <span class="ban-wrapper">
+                    <button
+                      class="ban-btn"
+                      [class.ban-btn--red]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                      [disabled]="effectiveStatus(agency) === 'incompatible'"
+                      type="button"
+                      (click)="onBanClick(agency)"
+                      [attr.aria-label]="effectiveStatus(agency) === 'excluded' ? 'Remove exclusion for ' + agency.name : 'Exclude ' + agency.name"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m4.9 4.9 14.2 14.2"/>
+                      </svg>
+                    </button>
+                    @if (effectiveStatus(agency) !== 'incompatible') {
+                      <span class="ban-tooltip">{{ effectiveStatus(agency) === 'excluded' ? 'Remove exclusion' : 'Exclude Agency' }}</span>
+                    }
+                  </span>
+                </td>
+              </tr>
+            }
+
+            @for (agency of filteredAvailable(); track agency.name) {
+              <tr class="table-row"
+                [class.table-row--incompatible]="effectiveStatus(agency) === 'incompatible'"
+                [class.table-row--excluded]="effectiveStatus(agency) === 'excluded'"
+                (mousemove)="effectiveStatus(agency) === 'incompatible' && onIncompatibleMouseMove($event, agency.incompatibleReason ?? '')"
+                (mouseleave)="effectiveStatus(agency) === 'incompatible' && onIncompatibleMouseLeave()"
+              >
+                <td class="td td--name">
+                  <span [class.agency-name--excluded]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'">{{ agency.name }}</span>
+                </td>
+                @for (colId of aaColumnOrder(); track colId) {
+                  @switch (colId) {
+                    @case ('specialism') {
+                      @if (colVisibility().specialism) {
+                        <td class="td">{{ agency.specialism }}</td>
+                      }
+                    }
+                    @case ('ranking') {
+                      @if (colVisibility().ranking) {
+                        <td class="td td--num">
+                          <button class="ranking-num" type="button" (click)="openBreakdown(agency)" [attr.aria-label]="'View score breakdown for ' + agency.name">
+                            {{ agency.ranking }}
+                          </button>
+                        </td>
+                      }
+                    }
+                    @case ('location') {
+                      @if (colVisibility().location) {
+                        <td class="td">{{ agency.location }}</td>
+                      }
+                    }
+                    @case ('plc') {
+                      @if (colVisibility().plc) {
+                        <td class="td td--num">{{ agency.placements }}</td>
+                      }
+                    }
+                    @default {
+                      @if (!aaHiddenAttrColumns().has(colId)) {
+                        <td class="td">{{ getAaErrefValue(agency.name, colId) }}</td>
+                      }
+                    }
+                  }
+                }
+                <td class="td td--action">
+                  <button
+                    class="action-btn"
+                    [class.action-btn--planned]="effectiveStatus(agency) == null && getState(agency.name, false) === 'planned'"
+                    [class.action-btn--excluded]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                    type="button"
+                    [disabled]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                    (click)="togglePlanned(agency.name, false)"
+                  >
+                    {{ (effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible') ? 'Excluded' : (getState(agency.name, false) === 'planned' ? 'Planned' : 'Select') }}
+                  </button>
+                </td>
+                <td class="td td--icon">
+                  <span class="ban-wrapper">
+                    <button
+                      class="ban-btn"
+                      [class.ban-btn--red]="effectiveStatus(agency) === 'excluded' || effectiveStatus(agency) === 'incompatible'"
+                      [disabled]="effectiveStatus(agency) === 'incompatible'"
+                      type="button"
+                      (click)="onBanClick(agency)"
+                      [attr.aria-label]="effectiveStatus(agency) === 'excluded' ? 'Remove exclusion for ' + agency.name : 'Exclude ' + agency.name"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m4.9 4.9 14.2 14.2"/>
+                      </svg>
+                    </button>
+                    @if (effectiveStatus(agency) !== 'incompatible') {
+                      <span class="ban-tooltip">{{ effectiveStatus(agency) === 'excluded' ? 'Remove exclusion' : 'Exclude Agency' }}</span>
+                    }
+                  </span>
+                </td>
+              </tr>
+            }
+
+            @if (filteredQueued().length === 0 && filteredAvailable().length === 0) {
+              <tr>
+                <td [attr.colspan]="visibleColCount()" class="empty-cell">No agencies match the current filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sheet-footer"></div>
+  </div>
+
+  <!-- Cursor-following incompatible reason tooltip -->
+  @if (cursorTooltip(); as tip) {
+    <div class="cursor-tooltip" [style.left.px]="tip.x + 14" [style.top.px]="tip.y + 14">
+      {{ tip.text }}
+    </div>
+  }
+
+  <!-- Score Breakdown popover -->
+  @if (breakdownData(); as bd) {
+    <div
+      class="breakdown-overlay"
+      (click)="closeBreakdown()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bd-title"
+    >
+      <div class="breakdown-dialog" (click)="$event.stopPropagation()">
+        <div class="breakdown-header">
+          <h3 class="breakdown-title" id="bd-title">Score Breakdown · {{ bd.agency.name }}</h3>
+          <button class="breakdown-close" type="button" (click)="closeBreakdown()" aria-label="Close score breakdown">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="breakdown-body">
+          <!-- Criteria Rules -->
+          <div class="breakdown-section">
+            <div class="breakdown-section-header">
+              <span class="breakdown-section-label">CRITERIA RULES</span>
+              <span class="criteria-met-badge">Criteria Met</span>
+            </div>
+            @for (group of bd.criteriaGroups; track $index; let i = $index) {
+              <button
+                class="bd-group-row"
+                type="button"
+                (click)="toggleBreakdownGroup(i)"
+                [attr.aria-expanded]="bd.expandedGroups[i]"
+              >
+                <svg
+                  class="bd-chevron"
+                  [class.bd-chevron--open]="bd.expandedGroups[i]"
+                  xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+                <span class="bd-group-label">
+                  Must pass
+                  <span class="bd-mode-highlight">{{ group.mode === 'at-least-one' ? 'at least one' : 'all' }}</span>
+                  of these rules
+                </span>
+                <span class="bd-inline-pass">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+                  </svg>
+                  Pass
+                </span>
+              </button>
+              @if (bd.expandedGroups[i]) {
+                @for (item of group.items; track item.label) {
+                  <div class="bd-item-row">
+                    <span class="bd-item-label">{{ item.label }}</span>
+                    <span [class]="item.pass ? 'bd-item-result bd-item-result--pass' : 'bd-item-result bd-item-result--fail'">
+                      @if (item.pass) {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+                        </svg>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+                        </svg>
+                      }
+                      {{ item.pass ? 'Pass' : 'Fail' }}
+                    </span>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          <!-- Ranking Rules -->
+          <div class="breakdown-section">
+            <div class="breakdown-section-header">
+              <span class="breakdown-section-label">RANKING RULES</span>
+            </div>
+            <button
+              class="bd-group-row"
+              type="button"
+              (click)="toggleRanking()"
+              [attr.aria-expanded]="bd.rankingExpanded"
+            >
+              <svg
+                class="bd-chevron"
+                [class.bd-chevron--open]="bd.rankingExpanded"
+                xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m9 18 6-6-6-6"/>
+              </svg>
+              <span class="bd-group-label">Total Score</span>
+              <span class="bd-total-pts">{{ bd.agency.ranking }} pts</span>
+            </button>
+            @if (bd.rankingExpanded) {
+              @for (rule of bd.rankingRules; track rule.label) {
+                <div class="bd-item-row" [class.bd-item-row--unearned]="!rule.earned">
+                  <span class="bd-item-label">{{ rule.label }}</span>
+                  <span [class]="rule.earned ? 'bd-rule-pts bd-rule-pts--earned' : 'bd-rule-pts bd-rule-pts--grey'">
+                    +{{ rule.points }} pts
+                  </span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="breakdown-footer">
+          <button class="btn btn--primary btn--sm" type="button" (click)="closeBreakdown()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+

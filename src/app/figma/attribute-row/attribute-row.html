@@ -1,0 +1,182 @@
+<td class="col-label">
+  <span class="label-text">
+    {{ label() }}
+    @if (required()) {
+      <span class="tooltip-wrapper">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16" height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#428bca"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="info-icon"
+          (mouseenter)="showTooltip.set(true)"
+          (mouseleave)="showTooltip.set(false)"
+          aria-label="Required for Agency when responding"
+          role="img"
+        >
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4"/>
+          <path d="M12 8h.01"/>
+        </svg>
+        @if (showTooltip()) {
+          <span class="tooltip" role="tooltip">Required for Agency when responding</span>
+        }
+      </span>
+    }
+  </span>
+
+  @if (isEditing()) {
+    <div class="edit-area">
+      @if (description()) {
+        <p class="edit-desc">{{ description() }}</p>
+      }
+
+      @switch (type()) {
+        @case ('text') {
+          <input
+            type="text"
+            class="edit-input"
+            [value]="$any(value()) ?? ''"
+            (input)="valueChange.emit($any($event.target).value)"
+            placeholder="Enter value..."
+          />
+        }
+        @case ('select') {
+          <select
+            class="edit-select"
+            [value]="$any(value()) ?? ''"
+            (change)="valueChange.emit($any($event.target).value)"
+          >
+            <option value="">Select...</option>
+            @for (opt of options(); track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+        }
+        @case ('multiselect') {
+          <div class="multiselect-wrapper">
+            <input
+              type="text"
+              class="edit-input edit-input--readonly"
+              [placeholder]="multiSelectItems().length > 0 ? (multiSelectItems().length + ' Items') : 'Select...'"
+              (click)="toggleDropdown()"
+              readonly
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+
+            @if (showDropdown()) {
+              <div class="dropdown" (mousedown)="$event.preventDefault()">
+                @if (multiSelectItems().length > 0) {
+                  <div class="dropdown-selected">
+                    @for (item of multiSelectItems(); track item) {
+                      <label class="dropdown-item">
+                        <input
+                          type="checkbox"
+                          class="dropdown-check"
+                          checked
+                          (change)="toggleMultiItem(item, false)"
+                        />
+                        {{ item }}
+                      </label>
+                    }
+                  </div>
+                }
+                <div class="dropdown-available">
+                  @for (item of availableOptions; track item) {
+                    <label class="dropdown-item">
+                      <input
+                        type="checkbox"
+                        class="dropdown-check"
+                        (change)="toggleMultiItem(item, $any($event.target).checked)"
+                      />
+                      {{ item }}
+                    </label>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @case ('date') {
+          <input
+            type="date"
+            class="edit-input"
+            [value]="$any(value()) ?? ''"
+            (change)="valueChange.emit($any($event.target).value)"
+          />
+        }
+        @case ('checkbox') {
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              class="checkbox-input"
+              [checked]="!!value()"
+              (change)="valueChange.emit($any($event.target).checked)"
+            />
+            <span>Yes</span>
+          </label>
+        }
+      }
+
+      @if (hasExpiry()) {
+        <div class="expiry-field">
+          <p class="edit-desc">Expiry Date</p>
+          <input
+            type="date"
+            class="edit-input"
+            [value]="expiryValue()"
+            (change)="expiryChange.emit($any($event.target).value)"
+          />
+        </div>
+      }
+
+      @if (hasFileUpload()) {
+        <div class="file-field">
+          <p class="edit-desc">Document Upload</p>
+          <div class="file-row">
+            <label class="file-btn">
+              <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              Upload
+              <input type="file" class="file-input-hidden" (change)="onFileSelected($event)" aria-label="Upload file" />
+            </label>
+            @if (fileValue()) {
+              <span class="file-badge">
+                {{ fileValue()!.name }}
+                <button type="button" class="file-remove" (click)="fileChange.emit(null)" aria-label="Remove file">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                  </svg>
+                </button>
+              </span>
+            } @else {
+              <span class="file-none">No file chosen</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</td>
+
+<td class="col-value" colspan="3">
+  @if (!isEditing()) {
+    <div class="value-row">
+      <span>{{ displayValue }}</span>
+      @if (hasFileUpload() && fileValue()) {
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-indicator" aria-hidden="true">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+          <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+          <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+        </svg>
+      }
+    </div>
+  }
+</td>

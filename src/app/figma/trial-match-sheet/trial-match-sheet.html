@@ -1,0 +1,190 @@
+<div class="overlay" aria-hidden="true" (wheel)="onOverlayWheel($event)"></div>
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tm-title">
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="tm-title">Run Trial Match</h2>
+      <button
+        class="sheet-close"
+        type="button"
+        (click)="closed.emit()"
+        aria-label="Close Trial Match panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <!-- Student Summary -->
+      <div class="summary-card">
+        <svg class="summary-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <div class="summary-text">
+          @if (studentCount() === 1) {
+            <span class="summary-label">Running for <strong>1 student</strong></span>
+          } @else {
+            <span class="summary-label">Running for <strong>{{ studentCount() }} students</strong></span>
+          }
+          <span class="summary-sub">2024 – Paramedicine – 1st Semester Placements</span>
+        </div>
+      </div>
+
+      <!-- Auto-queue -->
+      <div class="field-group">
+        <label class="toggle-label">
+          <input
+            type="checkbox"
+            [checked]="autoQueue()"
+            (change)="autoQueue.set(!autoQueue())"
+            aria-label="Auto-queue results"
+          />
+          Auto-queue results
+        </label>
+        @if (autoQueue()) {
+          <div class="inline-field">
+            <label class="field-label" for="queue-limit">Queue limit per student</label>
+            <input
+              id="queue-limit"
+              type="number"
+              class="field-input field-input--sm"
+              [value]="queueLimit()"
+              (input)="queueLimit.set(+$any($event.target).value)"
+              min="1"
+              max="20"
+            />
+          </div>
+        }
+      </div>
+
+      <!-- Ruleset -->
+      <div class="field-group">
+        <label class="field-label" for="ruleset-select">Ruleset</label>
+        <select
+          id="ruleset-select"
+          class="field-select"
+          [value]="selectedRuleset()"
+          (change)="selectedRuleset.set($any($event.target).value)"
+        >
+          <option value="">— Select a ruleset —</option>
+          @for (rs of rulesets; track rs) {
+            <option [value]="rs">{{ rs }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Rules table -->
+      <div class="rules-section">
+        <div class="rules-header-row">
+          <h3 class="rules-title">Rules</h3>
+          <button class="btn btn--ghost btn--sm" type="button" (click)="addRule()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"/><path d="M12 5v14"/>
+            </svg>
+            Add Rule
+          </button>
+        </div>
+
+        <table class="rules-table" aria-label="Matching rules">
+          <thead>
+            <tr>
+              <th class="rules-th" scope="col">Rule</th>
+              <th class="rules-th rules-th--num" scope="col">Weight&nbsp;(%)</th>
+              <th class="rules-th rules-th--center" scope="col">Active</th>
+              <th class="rules-th rules-th--center" scope="col">
+                <span class="sr-only">Delete</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rule of rules(); track rule.id) {
+              <tr class="rules-row">
+                <td class="rules-td">
+                  <input
+                    type="text"
+                    class="field-input"
+                    [value]="rule.name"
+                    (input)="updateRuleName(rule.id, $any($event.target).value)"
+                    [attr.aria-label]="'Rule name ' + ($index + 1)"
+                  />
+                </td>
+                <td class="rules-td rules-td--num">
+                  <input
+                    type="number"
+                    class="field-input field-input--sm"
+                    [value]="rule.weight"
+                    (input)="updateRuleWeight(rule.id, +$any($event.target).value)"
+                    min="0"
+                    max="100"
+                    [attr.aria-label]="'Weight for ' + rule.name"
+                  />
+                </td>
+                <td class="rules-td rules-td--center">
+                  <input
+                    type="checkbox"
+                    [checked]="rule.active"
+                    (change)="updateRuleActive(rule.id, $any($event.target).checked)"
+                    [attr.aria-label]="'Active: ' + rule.name"
+                  />
+                </td>
+                <td class="rules-td rules-td--center">
+                  <button
+                    class="delete-btn"
+                    type="button"
+                    (click)="removeRule(rule.id)"
+                    [attr.aria-label]="'Delete rule: ' + rule.name"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="btn btn--link" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn--secondary" type="button" [disabled]="!canRun()">Save</button>
+      <button class="btn btn--secondary" type="button" (click)="openSaveAs()">Save As</button>
+      <div class="footer-spacer"></div>
+      <button class="btn btn--warning" type="button" [disabled]="!canRun()">
+        Clear Planned &amp; Run Trial Match
+      </button>
+      <button class="btn btn--success" type="button" [disabled]="!canRun()">
+        Run Trial Match
+      </button>
+    </div>
+  </div>
+
+<!-- Save As Modal -->
+@if (showSaveAsModal()) {
+  <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="save-as-title">
+    <div class="modal">
+      <h3 class="modal-title" id="save-as-title">Save As</h3>
+      <div class="modal-body">
+        <label class="field-label" for="save-as-name">Ruleset name</label>
+        <input
+          id="save-as-name"
+          type="text"
+          class="field-input"
+          [value]="saveAsName()"
+          (input)="saveAsName.set($any($event.target).value)"
+          placeholder="Enter ruleset name"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--secondary" type="button" (click)="showSaveAsModal.set(false)">Cancel</button>
+        <button class="btn btn--primary" type="button" (click)="confirmSaveAs()">Save</button>
+      </div>
+    </div>
+  </div>
+}

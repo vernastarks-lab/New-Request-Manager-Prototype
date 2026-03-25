@@ -1,0 +1,548 @@
+<!-- ── Main agency table ── -->
+<div class="pr-table-wrapper">
+  <table class="pr-table" aria-label="Process Responses">
+    <thead>
+      <tr class="pr-head-row">
+        <th class="pr-th pr-th--check" scope="col">
+          <input type="checkbox" class="pr-checkbox" [checked]="allSelected()" (change)="toggleAllAgencies()" aria-label="Select all agencies" />
+        </th>
+        <th class="pr-th pr-th--agency" scope="col">
+          Agency
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#e05252" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="pr-sort-icon">
+            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/>
+          </svg>
+        </th>
+        <!-- Custom agency ERREF attrs — after Agency -->
+        @for (attr of prAgencyAttrColumnOrder(); track attr.id) {
+          @if (!prAgencyHiddenAttrs().has(attr.id)) {
+            <th class="pr-th" scope="col">{{ attr.name }}</th>
+          }
+        }
+        <!-- Togglable standard cols -->
+        @if (prMainColVis().numberOfRequests)   { <th class="pr-th pr-th--num"    scope="col">No. of Requests</th>   }
+        @if (prMainColVis().numberOfPlacements) { <th class="pr-th pr-th--num"    scope="col">No. of Placements</th> }
+        <!-- Fixed right -->
+        <th class="pr-th pr-th--status" scope="col">Status</th>
+        <!-- Cog — menu rendered outside table -->
+        <th class="pr-th pr-th--cog pr-main-cog-area" scope="col">
+          <button
+            class="pr-cog-btn"
+            type="button"
+            (click)="showMainColMenu.update(v => !v); $event.stopPropagation()"
+            [attr.aria-expanded]="showMainColMenu()"
+            aria-label="Show or hide columns"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (agency of agencies; track agency.id) {
+        <!-- Agency row -->
+        <tr class="pr-row" [class.pr-row--selected]="selectedAgencies().has(agency.id)">
+          <td class="pr-td pr-td--check">
+            <input type="checkbox" class="pr-checkbox" [checked]="selectedAgencies().has(agency.id)" (change)="toggleAgency(agency.id)" [attr.aria-label]="'Select ' + agency.name" />
+          </td>
+          <td class="pr-td pr-td--agency">
+            <div class="pr-agency-cell">
+              <button class="pr-expand-btn" type="button" (click)="toggleRow(agency.id)"
+                [attr.aria-expanded]="expandedRows().has(agency.id)"
+                [attr.aria-label]="(expandedRows().has(agency.id) ? 'Collapse' : 'Expand') + ' ' + agency.name">
+                @if (expandedRows().has(agency.id)) {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                }
+              </button>
+              <span class="pr-agency-name">{{ agency.name }}</span>
+            </div>
+          </td>
+          @for (attr of prAgencyAttrColumnOrder(); track attr.id) {
+            @if (!prAgencyHiddenAttrs().has(attr.id)) {
+              <td class="pr-td">{{ getAgencyAttrValue(agency.name, attr.id) }}</td>
+            }
+          }
+          @if (prMainColVis().numberOfRequests)   { <td class="pr-td pr-td--num">{{ agency.numberOfRequests }}</td>   }
+          @if (prMainColVis().numberOfPlacements) { <td class="pr-td pr-td--num">{{ agency.numberOfPlacements }}</td> }
+          <td class="pr-td pr-td--status">
+            @switch (agency.status) {
+              @case ('Action Pending') { <span class="pr-agency-status pr-agency-status--pending">{{ agency.status }}</span> }
+              @case ('Reviewed')      { <span class="pr-agency-status pr-agency-status--reviewed">{{ agency.status }}</span> }
+              @case ('Pending')       { <span class="pr-agency-status pr-agency-status--waiting">{{ agency.status }}</span> }
+            }
+          </td>
+          <td class="pr-td pr-td--cog"></td>
+        </tr>
+
+        <!-- Expanded nested request list -->
+        @if (expandedRows().has(agency.id)) {
+          <tr class="pr-expanded-row">
+            <td colspan="100" class="pr-expanded-cell">
+              <div class="pr-nested-container">
+                <div class="pr-nested-header">Request List</div>
+                <div class="pr-nested-scroll">
+                  <table class="pr-nested-table" [attr.aria-label]="'Request list for ' + agency.name">
+                    <thead>
+                      <tr class="pr-nested-head-row">
+                        <th class="pr-nth pr-nth--check" scope="col">
+                          <input type="checkbox" class="pr-checkbox" aria-label="Select all requests" />
+                        </th>
+                        <th class="pr-nth pr-nth--placements" scope="col"></th>
+                        <th class="pr-nth pr-nth--icon" scope="col"></th>
+                        <th class="pr-nth pr-nth--id" scope="col">
+                          Request ID
+                          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e05252" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="pr-sort-icon">
+                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="6 13 12 19 18 13"/>
+                          </svg>
+                        </th>
+                        @for (colId of prNestedColumnOrder(); track colId) {
+                          @switch (colId) {
+                            @case ('groupCode') {
+                              @if (prNestedColVis().groupCode) { <th class="pr-nth pr-nth--grp" scope="col">Group Code</th> }
+                            }
+                            @case ('student') {
+                              @if (prNestedColVis().student) { <th class="pr-nth pr-nth--student" scope="col">Student</th> }
+                            }
+                            @case ('requestedDates') {
+                              @if (prNestedColVis().requestedDates) { <th class="pr-nth pr-nth--dates" scope="col">Requested Dates</th> }
+                            }
+                            @case ('experience') {
+                              @if (prNestedColVis().experience) { <th class="pr-nth pr-nth--exp" scope="col">Experience</th> }
+                            }
+                            @case ('numberOfRequests') {
+                              @if (prNestedColVis().numberOfRequests) { <th class="pr-nth pr-nth--num" scope="col">No. of Requests</th> }
+                            }
+                            @case ('offers') {
+                              @if (prNestedColVis().offers) { <th class="pr-nth pr-nth--num" scope="col">Offers</th> }
+                            }
+                            @default {
+                              @if (!prNestedHiddenAttrs().has(colId)) { <th class="pr-nth pr-nth--attr" scope="col">{{ getNestedAttrName(colId) }}</th> }
+                            }
+                          }
+                        }
+                        <th class="pr-nth pr-nth--rstatus" scope="col">Request Status</th>
+                        <th class="pr-nth pr-nth--action" scope="col">Action</th>
+                        <th class="pr-nth pr-nth--error" scope="col">Error</th>
+                        <!-- Nested cog -->
+                        <th class="pr-nth pr-nth--cog" scope="col">
+                          <div class="pr-nested-cog-wrapper">
+                            <button class="pr-cog-btn" type="button"
+                              (click)="showNestedColMenu.update(v => !v); prNestedAttrSearchQuery.set(''); $event.stopPropagation()"
+                              [attr.aria-expanded]="showNestedColMenu()"
+                              aria-label="Show or hide nested columns"
+                              title="Modify Columns">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                              </svg>
+                            </button>
+                            @if (showNestedColMenu()) {
+                              <div class="fp-col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+                                <div class="fp-header">
+                                  <span class="fp-title">Columns</span>
+                                  <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
+                                    (click)="showNestedColMenu.set(false); prNestedAttrSearchQuery.set('')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                  </button>
+                                </div>
+                                <div class="fp-body">
+                                  <div class="fp-section-heading">
+                                    <div class="fp-section-heading-info">
+                                      <span>Columns in this view</span>
+                                      <span class="fp-col-count-sub">Includes Checkbox column</span>
+                                    </div>
+                                    <span class="fp-col-count-badge">{{ prNestedColInUse() }} / {{ prNestedColLimit }}</span>
+                                  </div>
+                                  <div class="fp-list">
+                                    <div class="fp-row">
+                                      <span class="fp-label">Show Placements</span>
+                                      <button class="fp-toggle fp-toggle--locked" type="button" disabled
+                                        aria-label="Show Placements column is always visible" title="This column is always visible">
+                                      </button>
+                                    </div>
+                                    <div class="fp-row">
+                                      <span class="fp-label">Request ID</span>
+                                      <button class="fp-toggle fp-toggle--locked" type="button" disabled
+                                        aria-label="Request ID column is always visible" title="This column is always visible">
+                                      </button>
+                                    </div>
+                                    <div class="fp-row">
+                                      <span class="fp-label">Request Status</span>
+                                      <button class="fp-toggle fp-toggle--locked" type="button" disabled
+                                        aria-label="Request Status column is always visible" title="This column is always visible">
+                                      </button>
+                                    </div>
+                                    @for (col of prNestedColDefs; track col.key) {
+                                      @if (prNestedColVis()[col.key]) {
+                                        <div class="fp-row">
+                                          <span class="fp-drag" aria-hidden="true">
+                                            <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                                          </span>
+                                          <span class="fp-label">{{ col.label }}</span>
+                                          <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                                            [attr.aria-label]="'Remove ' + col.label + ' from view'"
+                                            (click)="toggleNestedCol(col.key)"></button>
+                                        </div>
+                                      }
+                                    }
+                                    @for (attr of prNestedAttrColumnOrder(); track attr.id) {
+                                      @if (!prNestedHiddenAttrs().has(attr.id)) {
+                                        <div class="fp-row">
+                                          <span class="fp-drag" aria-hidden="true">
+                                            <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                                          </span>
+                                          <span class="fp-label">{{ attr.name }}</span>
+                                          <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                                            [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                                            (click)="toggleNestedAttrColumn(attr.id)"></button>
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                  <hr class="fp-divider" />
+                                  <div class="fp-section-heading">
+                                    <span>Available columns ({{ prNestedColsAvailable().length + prNestedAttrsAvailable().length }})</span>
+                                  </div>
+                                  <div class="fp-attr-search-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <input class="fp-attr-search" type="search" placeholder="Search student attribute"
+                                      [value]="prNestedAttrSearchQuery()"
+                                      (input)="prNestedAttrSearchQuery.set($any($event.target).value)"
+                                      aria-label="Search student attribute" autocomplete="off" />
+                                  </div>
+                                  @if (prNestedColAtCapacity()) {
+                                    <p class="fp-col-limit-msg" role="alert">Column limit of {{ prNestedColLimit }} reached. Remove a column to add more.</p>
+                                  }
+                                  @if (prNestedAttrSearchQuery().trim()) {
+                                    @if (prNestedErrefResults().length > 0) {
+                                      <div class="fp-attr-results">
+                                        @for (attr of prNestedErrefResults(); track attr.id) {
+                                          <button class="fp-attr-result-item" type="button"
+                                            [disabled]="prNestedColAtCapacity()"
+                                            [attr.aria-label]="'Add ' + attr.name + ' column'"
+                                            (click)="addNestedAttrColumn(attr)">
+                                            <div class="fp-attr-result-text">
+                                              <span class="fp-attr-result-name">{{ attr.name }}</span>
+                                              <span class="fp-attr-result-id">{{ attr.id }}</span>
+                                            </div>
+                                            <span class="fp-toggle" aria-hidden="true"></span>
+                                          </button>
+                                        }
+                                      </div>
+                                    }
+                                  }
+                                  @if (prNestedColsAvailable().length > 0 || prNestedAttrsAvailable().length > 0) {
+                                      <div class="fp-list fp-list--available">
+                                        @for (col of prNestedColsAvailable(); track col.key) {
+                                          <div class="fp-row">
+                                            <span class="fp-label fp-label--muted">{{ col.label }}</span>
+                                            <button class="fp-toggle" type="button"
+                                              [title]="prNestedColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                                              [attr.aria-label]="'Add ' + col.label + ' to view'"
+                                              [disabled]="prNestedColAtCapacity()"
+                                              (click)="toggleNestedCol(col.key)"></button>
+                                          </div>
+                                        }
+                                        @for (attr of prNestedAttrsAvailable(); track attr.id) {
+                                          <div class="fp-row">
+                                            <span class="fp-label fp-label--muted">{{ attr.name }}</span>
+                                            <div class="fp-row-actions">
+                                              <button class="fp-action-btn fp-action-btn--danger" type="button" title="Delete column"
+                                                [attr.aria-label]="'Delete ' + attr.name" tabindex="-1"
+                                                (click)="removeNestedAttrColumn(attr.id); $event.stopPropagation()">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                              </button>
+                                            </div>
+                                            <button class="fp-toggle" type="button"
+                                              [title]="prNestedColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                                              [attr.aria-label]="'Add ' + attr.name + ' to view'"
+                                              [disabled]="prNestedColAtCapacity()"
+                                              (click)="toggleNestedAttrColumn(attr.id)"></button>
+                                          </div>
+                                        }
+                                      </div>
+                                    }
+                                </div>
+                                <div class="fp-footer">
+                                  <button class="fp-footer-apply-btn" type="button"
+                                    (click)="showNestedColMenu.set(false); prNestedAttrSearchQuery.set('')">Apply</button>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (req of agency.requests; track req.id) {
+                        <tr class="pr-nested-row" [class.pr-nested-row--selected]="selectedRequests().has(req.id)">
+                          <td class="pr-ntd pr-ntd--check">
+                            <input type="checkbox" class="pr-checkbox" [checked]="selectedRequests().has(req.id)" (change)="toggleRequest(req.id)" [attr.aria-label]="'Select request ' + req.id" />
+                          </td>
+                          <td class="pr-ntd pr-ntd--placements">
+                            <button class="pr-link-btn" type="button">Show Placements</button>
+                          </td>
+                          <td class="pr-ntd pr-ntd--icon">
+                            @if (req.requestStatus !== 'Draft') {
+                              <span class="pr-status-dot" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="8" fill="currentColor"/>
+                                </svg>
+                              </span>
+                            }
+                          </td>
+                          <td class="pr-ntd pr-ntd--id">
+                            <button class="pr-link-btn" type="button">{{ req.id }}</button>
+                          </td>
+                          @for (colId of prNestedColumnOrder(); track colId) {
+                            @switch (colId) {
+                              @case ('groupCode') {
+                                @if (prNestedColVis().groupCode) { <td class="pr-ntd">{{ req.groupCode }}</td> }
+                              }
+                              @case ('student') {
+                                @if (prNestedColVis().student) {
+                                  <td class="pr-ntd pr-ntd--student">
+                                    <button class="pr-link-btn" type="button">{{ req.studentName }} ({{ req.studentCode }})</button>
+                                  </td>
+                                }
+                              }
+                              @case ('requestedDates') {
+                                @if (prNestedColVis().requestedDates) { <td class="pr-ntd">{{ req.requestedDates }}</td> }
+                              }
+                              @case ('experience') {
+                                @if (prNestedColVis().experience) { <td class="pr-ntd">{{ req.experience }}</td> }
+                              }
+                              @case ('numberOfRequests') {
+                                @if (prNestedColVis().numberOfRequests) { <td class="pr-ntd pr-ntd--num">{{ req.numberOfRequests }}</td> }
+                              }
+                              @case ('offers') {
+                                @if (prNestedColVis().offers) { <td class="pr-ntd pr-ntd--num">{{ req.offers }}</td> }
+                              }
+                              @default {
+                                @if (!prNestedHiddenAttrs().has(colId)) { <td class="pr-ntd">{{ getNestedAttrValue(req.id, colId) }}</td> }
+                              }
+                            }
+                          }
+                          <!-- Request Status (fixed) -->
+                          <td class="pr-ntd">
+                            @switch (req.requestStatus) {
+                              @case ('Draft') {
+                                <div class="pr-req-status">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                  Draft
+                                </div>
+                              }
+                              @case ('Pending') {
+                                <div class="pr-req-status pr-req-status--pending">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                  Pending
+                                </div>
+                              }
+                              @case ('Offer Received') {
+                                <div class="pr-req-status pr-req-status--offer">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                                  Offer Received
+                                </div>
+                              }
+                              @case ('Rejected - Acknowledgement Required') {
+                                <div class="pr-req-status pr-req-status--rejected">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                  Rejected – Acknowledgement Required
+                                </div>
+                              }
+                            }
+                          </td>
+                          <!-- Action (fixed) -->
+                          <td class="pr-ntd pr-ntd--action">
+                            <div class="pr-action-wrapper">
+                              <button class="pr-action-btn" type="button"
+                                (click)="toggleActionMenu(req.id); $event.stopPropagation()"
+                                [attr.aria-expanded]="prShowActionMenu() === req.id">
+                                Action
+                                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                              </button>
+                              @if (prShowActionMenu() === req.id) {
+                                <div class="pr-action-menu" role="menu" (click)="$event.stopPropagation()">
+                                  <button class="pr-action-menu-item" role="menuitem" type="button" (click)="prShowActionMenu.set(null)">Accept Offer</button>
+                                  <button class="pr-action-menu-item" role="menuitem" type="button" (click)="prShowActionMenu.set(null)">Reject Offer</button>
+                                  <button class="pr-action-menu-item" role="menuitem" type="button" (click)="prShowActionMenu.set(null)">Acknowledge</button>
+                                </div>
+                              }
+                            </div>
+                          </td>
+                          <!-- Error (fixed, empty) -->
+                          <td class="pr-ntd pr-ntd--error"></td>
+                          <td class="pr-ntd pr-ntd--cog"></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Nested pagination -->
+                <div class="pr-pagination">
+                  <div class="pr-pager">
+                    <button class="pr-pager-btn" type="button" aria-label="First page">|&lt;</button>
+                    <button class="pr-pager-btn" type="button" aria-label="Previous page">&lt;</button>
+                    <button class="pr-pager-btn pr-pager-btn--active" type="button" aria-current="page">1</button>
+                    <button class="pr-pager-btn" type="button" aria-label="Next page">&gt;</button>
+                    <button class="pr-pager-btn" type="button" aria-label="Last page">&gt;|</button>
+                    <select class="pr-page-size" aria-label="Items per page"><option value="40">40</option><option value="20">20</option><option value="10">10</option></select>
+                    <span class="pr-page-size-label">items per page</span>
+                  </div>
+                  <span class="pr-page-info">1-{{ agency.requests.length }} of {{ agency.requests.length }} items</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <!-- Main col-menu — outside <table>, rendered as fixed sidesheet -->
+  @if (showMainColMenu()) {
+    <div class="fp-col-menu pr-main-cog-area" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+      <div class="fp-header">
+        <span class="fp-title">Columns</span>
+        <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
+          (click)="showMainColMenu.set(false); prMainAttrSearchQuery.set('')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="fp-body">
+        <div class="fp-section-heading">
+          <div class="fp-section-heading-info">
+            <span>Columns in this view</span>
+            <span class="fp-col-count-sub">Includes Checkbox column</span>
+          </div>
+          <span class="fp-col-count-badge">{{ prMainColInUse() }} / {{ prMainColLimit }}</span>
+        </div>
+        <div class="fp-list">
+          <div class="fp-row">
+            <span class="fp-label">Agency</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Agency column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          <div class="fp-row">
+            <span class="fp-label">Status</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled
+              aria-label="Status column is always visible" title="This column is always visible">
+            </button>
+          </div>
+          @for (col of prMainColDefs; track col.key) {
+            @if (prMainColVis()[col.key]) {
+              <div class="fp-row">
+                <span class="fp-drag" aria-hidden="true">
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                </span>
+                <span class="fp-label">{{ col.label }}</span>
+                <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                  [attr.aria-label]="'Remove ' + col.label + ' from view'"
+                  (click)="toggleMainCol(col.key)"></button>
+              </div>
+            }
+          }
+          @for (attr of prAgencyAttrColumnOrder(); track attr.id) {
+            @if (!prAgencyHiddenAttrs().has(attr.id)) {
+              <div class="fp-row">
+                <span class="fp-drag" aria-hidden="true">
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+                </span>
+                <span class="fp-label">{{ attr.name }}</span>
+                <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
+                  [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                  (click)="toggleAgencyAttrColumn(attr.id)"></button>
+              </div>
+            }
+          }
+        </div>
+        <hr class="fp-divider" />
+        <div class="fp-section-heading">
+          <span>Available columns ({{ prMainColsAvailable().length + prMainAttrsAvailable().length }})</span>
+        </div>
+        <div class="fp-attr-search-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="fp-attr-search" type="search" placeholder="Search agency attribute"
+            [value]="prMainAttrSearchQuery()"
+            (input)="prMainAttrSearchQuery.set($any($event.target).value)"
+            aria-label="Search agency attribute" autocomplete="off" />
+        </div>
+        @if (prMainColAtCapacity()) {
+          <p class="fp-col-limit-msg" role="alert">Column limit of {{ prMainColLimit }} reached. Remove a column to add more.</p>
+        }
+        @if (prMainAttrSearchQuery().trim()) {
+          @if (prAgencyErrefResults().length > 0) {
+            <div class="fp-attr-results">
+              @for (attr of prAgencyErrefResults(); track attr.id) {
+                <button class="fp-attr-result-item" type="button"
+                  [disabled]="prMainColAtCapacity()"
+                  [attr.aria-label]="'Add ' + attr.name + ' column'"
+                  (click)="addAgencyAttrColumn(attr)">
+                  <div class="fp-attr-result-text">
+                    <span class="fp-attr-result-name">{{ attr.name }}</span>
+                    <span class="fp-attr-result-id">{{ attr.id }}</span>
+                  </div>
+                  <span class="fp-toggle" aria-hidden="true"></span>
+                </button>
+              }
+            </div>
+          }
+        }
+        @if (prMainColsAvailable().length > 0 || prMainAttrsAvailable().length > 0) {
+            <div class="fp-list fp-list--available">
+              @for (col of prMainColsAvailable(); track col.key) {
+                <div class="fp-row">
+                  <span class="fp-label fp-label--muted">{{ col.label }}</span>
+                  <button class="fp-toggle" type="button"
+                    [title]="prMainColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                    [attr.aria-label]="'Add ' + col.label + ' to view'"
+                    [disabled]="prMainColAtCapacity()"
+                    (click)="toggleMainCol(col.key)"></button>
+                </div>
+              }
+              @for (attr of prMainAttrsAvailable(); track attr.id) {
+                <div class="fp-row">
+                  <span class="fp-label fp-label--muted">{{ attr.name }}</span>
+                  <div class="fp-row-actions">
+                    <button class="fp-action-btn fp-action-btn--danger" type="button" title="Delete column"
+                      [attr.aria-label]="'Delete ' + attr.name" tabindex="-1"
+                      (click)="removeAgencyAttrColumn(attr.id); $event.stopPropagation()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                  <button class="fp-toggle" type="button"
+                    [title]="prMainColAtCapacity() ? 'Column limit reached' : 'Add to view'"
+                    [attr.aria-label]="'Add ' + attr.name + ' to view'"
+                    [disabled]="prMainColAtCapacity()"
+                    (click)="toggleAgencyAttrColumn(attr.id)"></button>
+                </div>
+              }
+            </div>
+          }
+      </div>
+      <div class="fp-footer">
+        <button class="fp-footer-apply-btn" type="button"
+          (click)="showMainColMenu.set(false); prMainAttrSearchQuery.set('')">Apply</button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Outer pagination -->
+<div class="pr-pagination pr-pagination--outer">
+  <div class="pr-pager">
+    <button class="pr-pager-btn" type="button" aria-label="First page">|&lt;</button>
+    <button class="pr-pager-btn" type="button" aria-label="Previous page">&lt;</button>
+    <button class="pr-pager-btn pr-pager-btn--active" type="button" aria-current="page">1</button>
+    <button class="pr-pager-btn" type="button" aria-label="Next page">&gt;</button>
+    <button class="pr-pager-btn" type="button" aria-label="Last page">&gt;|</button>
+    <select class="pr-page-size" aria-label="Items per page"><option value="40">40</option><option value="20">20</option><option value="10">10</option></select>
+    <span class="pr-page-size-label">items per page</span>
+  </div>
+  <span class="pr-page-info">1–{{ agencies.length }} of {{ agencies.length }} items</span>
+</div>

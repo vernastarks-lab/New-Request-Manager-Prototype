@@ -1,0 +1,254 @@
+.details-card {
+  background-color: #fff;
+}
+
+.details-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+}
+
+.details-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.details-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* Inherit section (Requirements / Placement Dates) */
+/* Smooth expand/collapse for override sections — prevents layout jump */
+.override-panel {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+
+  &--open {
+    max-height: 600px;
+  }
+}
+
+.inherit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inherit-section-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.inherit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.inherit-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Info banner */
+.info-banner {
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+
+  &--override {
+    background-color: #fefce8;
+    border-color: #fde68a;
+  }
+}
+
+.info-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-banner-text {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.override-btn {
+  font-size: 0.875rem;
+  color: #428bca;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: #0b5f7c;
+  }
+}
+
+/* Two-column grid */
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &--flex {
+    flex: 1;
+  }
+
+  &--full {
+    grid-column: span 2;
+  }
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.field-input,
+.field-select,
+.field-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  background-color: #fff;
+  color: #111827;
+
+  &:focus {
+    outline: 2px solid #428bca;
+    outline-offset: 1px;
+  }
+}
+
+.field-readonly {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.125rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  color: currentColor;
+
+  &:hover {
+    color: #dc2626;
+  }
+}
+
+/* Duration row */
+.duration-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Date override */
+.date-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Checkboxes */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkbox-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.checkbox-input {
+  margin-top: 0.125rem;
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.checkbox-title {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.125rem;
+}
+
+.checkbox-desc {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
