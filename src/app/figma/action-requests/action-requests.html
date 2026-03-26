@@ -197,7 +197,7 @@
                                 <div class="fp-header">
                                   <span class="fp-title">Columns</span>
                                   <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
-                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set(''); nestedSelectedCollection.set(null)">
+                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                   </button>
                                 </div>
@@ -249,59 +249,32 @@
                                   </div>
                                   <div class="fp-attr-search-wrapper">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                                    <input class="fp-attr-search" type="search" placeholder="Search Student Collections"
+                                    <input class="fp-attr-search" type="search" placeholder="Search student attribute"
                                       [value]="nestedAttrSearchQuery()"
                                       (input)="nestedAttrSearchQuery.set($any($event.target).value)"
-                                      aria-label="Search Student Collections" autocomplete="off" />
+                                      aria-label="Search student attribute" autocomplete="off" />
                                   </div>
                                   @if (nestedColAtCapacity()) {
                                     <p class="fp-col-limit-msg" role="alert">Column limit of {{ nestedColLimit }} reached. Remove a column to add more.</p>
                                   }
                                   @if (nestedAttrSearchQuery().trim()) {
-                                    @if (nestedSelectedCollection()) {
-                                      <div class="fp-collection-breadcrumb">
-                                        <button class="fp-collection-back-btn" type="button"
-                                          (click)="nestedSelectedCollection.set(null)"
-                                          aria-label="Back to collections">
-                                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                                          {{ nestedSelectedCollection() }}
+                                    <div class="fp-attr-results">
+                                      @for (attr of nestedErrefSearchResults(); track attr.id) {
+                                        <button class="fp-attr-result-item" type="button"
+                                          [disabled]="nestedColAtCapacity()"
+                                          [attr.aria-label]="'Add ' + attr.name + ' column'"
+                                          (click)="addNestedAttrColumn(attr)">
+                                          <div class="fp-attr-result-text">
+                                            <span class="fp-attr-result-name">{{ attr.name }}</span>
+                                            <span class="fp-attr-result-id">{{ attr.id }}</span>
+                                          </div>
+                                          <span class="fp-toggle" aria-hidden="true"></span>
                                         </button>
-                                      </div>
-                                      <div class="fp-attr-results">
-                                        @for (attr of nestedAttrsInCollection(); track attr.id) {
-                                          <button class="fp-attr-result-item" type="button"
-                                            [disabled]="nestedColAtCapacity()"
-                                            [attr.aria-label]="'Add ' + attr.name + ' column'"
-                                            (click)="addNestedAttrColumn(attr)">
-                                            <div class="fp-attr-result-text">
-                                              <span class="fp-attr-result-name">{{ attr.name }}</span>
-                                              <span class="fp-attr-result-id">{{ attr.id }}</span>
-                                            </div>
-                                            <span class="fp-toggle" aria-hidden="true"></span>
-                                          </button>
-                                        }
-                                        @if (nestedAttrsInCollection().length === 0) {
-                                          <p class="fp-attr-no-results">No attributes available in this collection</p>
-                                        }
-                                      </div>
-                                    } @else {
-                                      <div class="fp-collection-list">
-                                        @for (col of nestedAttrCollections(); track col.name) {
-                                          <button class="fp-collection-item" type="button"
-                                            (click)="nestedSelectedCollection.set(col.name)"
-                                            [attr.aria-label]="col.name + ' collection, ' + col.count + ' attributes'">
-                                            <div class="fp-collection-item-info">
-                                              <span class="fp-collection-item-name">{{ col.name }}</span>
-                                              <span class="fp-collection-item-count">{{ col.count }} attribute{{ col.count === 1 ? '' : 's' }}</span>
-                                            </div>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                                          </button>
-                                        }
-                                        @if (nestedAttrCollections().length === 0) {
-                                          <p class="fp-attr-no-results">No attributes available</p>
-                                        }
-                                      </div>
-                                    }
+                                      }
+                                      @if (nestedErrefSearchResults().length === 0) {
+                                        <p class="fp-attr-no-results">No matching attributes</p>
+                                      }
+                                    </div>
                                   }
                                   @if (nestedColsAvailable().length > 0 || nestedAttrsAvailable().length > 0) {
                                       <div class="fp-list fp-list--available">
@@ -330,7 +303,7 @@
                                 </div>
                                 <div class="fp-footer">
                                   <button class="fp-footer-apply-btn" type="button"
-                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set(''); nestedSelectedCollection.set(null)">Apply</button>
+                                    (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">Apply</button>
                                 </div>
                               </div>
                             }
@@ -468,7 +441,7 @@
       <div class="fp-header">
         <span class="fp-title">Columns</span>
         <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
-          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set(''); agencySelectedCollection.set(null)">
+          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set('')">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
@@ -525,59 +498,32 @@
         </div>
         <div class="fp-attr-search-wrapper">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input class="fp-attr-search" type="search" placeholder="Search Agency Collections"
+          <input class="fp-attr-search" type="search" placeholder="Search agency attribute"
             [value]="agencyAttrSearchQuery()"
             (input)="agencyAttrSearchQuery.set($any($event.target).value)"
-            aria-label="Search Agency Collections" autocomplete="off" />
+            aria-label="Search agency attribute" autocomplete="off" />
         </div>
         @if (agencyColAtCapacity()) {
           <p class="fp-col-limit-msg" role="alert">Column limit of {{ agencyColLimit }} reached. Remove a column to add more.</p>
         }
         @if (agencyAttrSearchQuery().trim()) {
-          @if (agencySelectedCollection()) {
-            <div class="fp-collection-breadcrumb">
-              <button class="fp-collection-back-btn" type="button"
-                (click)="agencySelectedCollection.set(null)"
-                aria-label="Back to collections">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                {{ agencySelectedCollection() }}
+          <div class="fp-attr-results">
+            @for (attr of agencyErrefSearchResults(); track attr.id) {
+              <button class="fp-attr-result-item" type="button"
+                [disabled]="agencyColAtCapacity()"
+                [attr.aria-label]="'Add ' + attr.name + ' column'"
+                (click)="addAgencyAttrColumn(attr)">
+                <div class="fp-attr-result-text">
+                  <span class="fp-attr-result-name">{{ attr.name }}</span>
+                  <span class="fp-attr-result-id">{{ attr.id }}</span>
+                </div>
+                <span class="fp-toggle" aria-hidden="true"></span>
               </button>
-            </div>
-            <div class="fp-attr-results">
-              @for (attr of agencyAttrsInCollection(); track attr.id) {
-                <button class="fp-attr-result-item" type="button"
-                  [disabled]="agencyColAtCapacity()"
-                  [attr.aria-label]="'Add ' + attr.name + ' column'"
-                  (click)="addAgencyAttrColumn(attr)">
-                  <div class="fp-attr-result-text">
-                    <span class="fp-attr-result-name">{{ attr.name }}</span>
-                    <span class="fp-attr-result-id">{{ attr.id }}</span>
-                  </div>
-                  <span class="fp-toggle" aria-hidden="true"></span>
-                </button>
-              }
-              @if (agencyAttrsInCollection().length === 0) {
-                <p class="fp-attr-no-results">No attributes available in this collection</p>
-              }
-            </div>
-          } @else {
-            <div class="fp-collection-list">
-              @for (col of agencyAttrCollections(); track col.name) {
-                <button class="fp-collection-item" type="button"
-                  (click)="agencySelectedCollection.set(col.name)"
-                  [attr.aria-label]="col.name + ' collection, ' + col.count + ' attributes'">
-                  <div class="fp-collection-item-info">
-                    <span class="fp-collection-item-name">{{ col.name }}</span>
-                    <span class="fp-collection-item-count">{{ col.count }} attribute{{ col.count === 1 ? '' : 's' }}</span>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                </button>
-              }
-              @if (agencyAttrCollections().length === 0) {
-                <p class="fp-attr-no-results">No attributes available</p>
-              }
-            </div>
-          }
+            }
+            @if (agencyErrefSearchResults().length === 0) {
+              <p class="fp-attr-no-results">No matching attributes</p>
+            }
+          </div>
         }
         @if (agencyAttrsAvailable().length > 0) {
             <div class="fp-list fp-list--available">
@@ -596,7 +542,7 @@
       </div>
       <div class="fp-footer">
         <button class="fp-footer-apply-btn" type="button"
-          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set(''); agencySelectedCollection.set(null)">Apply</button>
+          (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set('')">Apply</button>
       </div>
     </div>
   }
