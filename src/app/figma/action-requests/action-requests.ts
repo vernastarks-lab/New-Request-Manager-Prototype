@@ -562,6 +562,66 @@ export class ActionRequestsComponent {
     return this.nestedErrefData[reqId]?.[attrId] ?? '—';
   }
 
+  readonly agencyColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly agencyColMenuEditLabel = signal<string>('');
+  readonly agencyCustomAttrLabels = signal<Record<string, string>>({});
+  readonly agencyColMenuEditAttr = computed(() => {
+    const item = this.agencyColMenuEditItem();
+    if (!item) return null;
+    return this.agencyErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openAgencyColEdit(id: string): void {
+    this.agencyColMenuEditItem.set({ type: 'attr', id });
+    this.agencyColMenuEditLabel.set(this.agencyCustomAttrLabels()[id] ?? '');
+  }
+  closeAgencyColEdit(): void {
+    this.agencyColMenuEditItem.set(null);
+    this.agencyColMenuEditLabel.set('');
+  }
+  saveAgencyColEdit(): void {
+    const item = this.agencyColMenuEditItem();
+    if (!item) return;
+    const label = this.agencyColMenuEditLabel().trim();
+    this.agencyCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.agencyColMenuEditItem.set(null);
+    this.agencyColMenuEditLabel.set('');
+  }
+  getAgencyAttrLabel(id: string): string {
+    const custom = this.agencyCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.agencyErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
+  readonly arNestedColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly arNestedColMenuEditLabel = signal<string>('');
+  readonly arNestedCustomAttrLabels = signal<Record<string, string>>({});
+  readonly arNestedColMenuEditAttr = computed(() => {
+    const item = this.arNestedColMenuEditItem();
+    if (!item) return null;
+    return this.nestedErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openArNestedColEdit(id: string): void {
+    this.arNestedColMenuEditItem.set({ type: 'attr', id });
+    this.arNestedColMenuEditLabel.set(this.arNestedCustomAttrLabels()[id] ?? '');
+  }
+  closeArNestedColEdit(): void {
+    this.arNestedColMenuEditItem.set(null);
+    this.arNestedColMenuEditLabel.set('');
+  }
+  saveArNestedColEdit(): void {
+    const item = this.arNestedColMenuEditItem();
+    if (!item) return;
+    const label = this.arNestedColMenuEditLabel().trim();
+    this.arNestedCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.arNestedColMenuEditItem.set(null);
+    this.arNestedColMenuEditLabel.set('');
+  }
+  getArNestedAttrLabel(id: string): string {
+    const custom = this.arNestedCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.nestedErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
   // ── Outside-click handler ─────────────────────────────────────────────────
   onDocClick(event: MouseEvent): void {
     const t = event.target as HTMLElement;

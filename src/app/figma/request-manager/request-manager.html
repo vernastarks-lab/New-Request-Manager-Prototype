@@ -267,6 +267,45 @@
                       </button>
                       @if (showAllocColMenu()) {
                         <div class="col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+                          @if (allocColMenuEditItem()) {
+                            <div class="fp-header">
+                              <div style="display:flex; align-items:center; gap:6px;">
+                                <button class="fp-icon-btn" type="button" aria-label="Back to columns" (click)="closeAllocColEdit()">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                                </button>
+                                <span class="fp-title">Column Settings</span>
+                              </div>
+                              <button class="fp-icon-btn" type="button" aria-label="Close columns panel" (click)="showAllocColMenu.set(false); closeAllocColEdit()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                              </button>
+                            </div>
+                            <div class="fp-body">
+                              <div class="fp-edit-body">
+                                <div class="fp-edit-readonly-section">
+                                  <span class="fp-edit-readonly-label">Attribute name</span>
+                                  <span class="fp-edit-readonly-value">{{ allocColMenuEditAttr()?.name }}</span>
+                                </div>
+                                <div class="fp-edit-readonly-section">
+                                  <span class="fp-edit-readonly-label">ERRefId</span>
+                                  <span class="fp-edit-readonly-value fp-edit-readonly-value--code">{{ allocColMenuEditItem()?.id }}</span>
+                                </div>
+                                <div class="fp-edit-readonly-section">
+                                  <span class="fp-edit-readonly-label">Description</span>
+                                  <span class="fp-edit-readonly-value">{{ allocColMenuEditAttr()?.description || 'No description available.' }}</span>
+                                </div>
+                                <div class="fp-edit-name-field">
+                                  <input class="fp-edit-input" id="alloc-col-edit-display-name" type="text" placeholder="Display Name (Optional)"
+                                    [value]="allocColMenuEditLabel()"
+                                    (input)="allocColMenuEditLabel.set($any($event.target).value)"
+                                    aria-label="Display name override" />
+                                </div>
+                                <div class="fp-edit-actions">
+                                  <button class="fp-edit-cancel-btn" type="button" (click)="closeAllocColEdit()">Cancel</button>
+                                  <button class="fp-edit-save-btn" type="button" (click)="saveAllocColEdit()">Save</button>
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
                           <div class="fp-header">
                             <span class="fp-title">Columns</span>
                             <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
@@ -307,9 +346,15 @@
                                     <span class="fp-drag" aria-hidden="true">
                                       <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                                     </span>
-                                    <span class="fp-label">{{ attr.name }}</span>
+                                    <span class="fp-label">{{ getAllocAttrLabel(attr.id) }}</span>
+                                    <div class="fp-row-actions">
+                                      <button class="fp-action-btn" type="button" title="Edit" [attr.aria-label]="'Edit ' + getAllocAttrLabel(attr.id)" tabindex="-1"
+                                        (click)="openAllocColEdit(attr.id)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                      </button>
+                                    </div>
                                     <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
-                                      [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                                      [attr.aria-label]="'Remove ' + getAllocAttrLabel(attr.id) + ' from view'"
                                       (click)="toggleAllocAttrColumn(attr.id)"></button>
                                   </div>
                                 }
@@ -377,6 +422,7 @@
                             <button class="fp-footer-apply-btn" type="button"
                               (click)="showAllocColMenu.set(false); allocAttrSearchQuery.set('')">Apply</button>
                           </div>
+                          }
                         </div>
                       }
                     </div>
@@ -907,6 +953,45 @@
                                   </button>
                                   @if (showNestedColMenu()) {
                                     <div class="col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+                                      @if (nestedColMenuEditItem()) {
+                                        <div class="fp-header">
+                                          <div style="display:flex; align-items:center; gap:6px;">
+                                            <button class="fp-icon-btn" type="button" aria-label="Back to columns" (click)="closeNestedColEdit()">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                                            </button>
+                                            <span class="fp-title">Column Settings</span>
+                                          </div>
+                                          <button class="fp-icon-btn" type="button" aria-label="Close columns panel" (click)="showNestedColMenu.set(false); closeNestedColEdit()">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                          </button>
+                                        </div>
+                                        <div class="fp-body">
+                                          <div class="fp-edit-body">
+                                            <div class="fp-edit-readonly-section">
+                                              <span class="fp-edit-readonly-label">Attribute name</span>
+                                              <span class="fp-edit-readonly-value">{{ nestedColMenuEditAttr()?.name }}</span>
+                                            </div>
+                                            <div class="fp-edit-readonly-section">
+                                              <span class="fp-edit-readonly-label">ERRefId</span>
+                                              <span class="fp-edit-readonly-value fp-edit-readonly-value--code">{{ nestedColMenuEditItem()?.id }}</span>
+                                            </div>
+                                            <div class="fp-edit-readonly-section">
+                                              <span class="fp-edit-readonly-label">Description</span>
+                                              <span class="fp-edit-readonly-value">{{ nestedColMenuEditAttr()?.description || 'No description available.' }}</span>
+                                            </div>
+                                            <div class="fp-edit-name-field">
+                                              <input class="fp-edit-input" id="nested-col-edit-display-name" type="text" placeholder="Display Name (Optional)"
+                                                [value]="nestedColMenuEditLabel()"
+                                                (input)="nestedColMenuEditLabel.set($any($event.target).value)"
+                                                aria-label="Display name override" />
+                                            </div>
+                                            <div class="fp-edit-actions">
+                                              <button class="fp-edit-cancel-btn" type="button" (click)="closeNestedColEdit()">Cancel</button>
+                                              <button class="fp-edit-save-btn" type="button" (click)="saveNestedColEdit()">Save</button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      } @else {
                                       <div class="fp-header">
                                         <span class="fp-title">Columns</span>
                                         <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
@@ -948,9 +1033,15 @@
                                                 <span class="fp-drag" aria-hidden="true">
                                                   <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                                                 </span>
-                                                <span class="fp-label">{{ attr.name }}</span>
+                                                <span class="fp-label">{{ getNestedAttrLabel(attr.id) }}</span>
+                                                <div class="fp-row-actions">
+                                                  <button class="fp-action-btn" type="button" title="Edit" [attr.aria-label]="'Edit ' + getNestedAttrLabel(attr.id)" tabindex="-1"
+                                                    (click)="openNestedColEdit(attr.id)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                  </button>
+                                                </div>
                                                 <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
-                                                  [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                                                  [attr.aria-label]="'Remove ' + getNestedAttrLabel(attr.id) + ' from view'"
                                                   (click)="toggleNestedAttrColumn(attr.id)"></button>
                                               </div>
                                             }
@@ -1018,6 +1109,7 @@
                                         <button class="fp-footer-apply-btn" type="button"
                                           (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">Apply</button>
                                       </div>
+                                      }
                                     </div>
                                   }
                                 </div>

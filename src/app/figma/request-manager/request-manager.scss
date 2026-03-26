@@ -1327,6 +1327,8 @@
   font-weight: 400;
   color: #374151;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 
   &--code {
     font-family: monospace;

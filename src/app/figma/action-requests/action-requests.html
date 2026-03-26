@@ -194,6 +194,45 @@
                             </button>
                             @if (showNestedColMenu()) {
                               <div class="fp-col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+                                @if (arNestedColMenuEditItem()) {
+                                  <div class="fp-header">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                      <button class="fp-icon-btn" type="button" aria-label="Back to columns" (click)="closeArNestedColEdit()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                                      </button>
+                                      <span class="fp-title">Column Settings</span>
+                                    </div>
+                                    <button class="fp-icon-btn" type="button" aria-label="Close columns panel" (click)="showNestedColMenu.set(false); closeArNestedColEdit()">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                    </button>
+                                  </div>
+                                  <div class="fp-body">
+                                    <div class="fp-edit-body">
+                                      <div class="fp-edit-readonly-section">
+                                        <span class="fp-edit-readonly-label">Attribute name</span>
+                                        <span class="fp-edit-readonly-value">{{ arNestedColMenuEditAttr()?.name }}</span>
+                                      </div>
+                                      <div class="fp-edit-readonly-section">
+                                        <span class="fp-edit-readonly-label">ERRefId</span>
+                                        <span class="fp-edit-readonly-value fp-edit-readonly-value--code">{{ arNestedColMenuEditItem()?.id }}</span>
+                                      </div>
+                                      <div class="fp-edit-readonly-section">
+                                        <span class="fp-edit-readonly-label">Description</span>
+                                        <span class="fp-edit-readonly-value">{{ arNestedColMenuEditAttr()?.description || 'No description available.' }}</span>
+                                      </div>
+                                      <div class="fp-edit-name-field">
+                                        <input class="fp-edit-input" id="ar-nested-col-edit-display-name" type="text" placeholder="Display Name (Optional)"
+                                          [value]="arNestedColMenuEditLabel()"
+                                          (input)="arNestedColMenuEditLabel.set($any($event.target).value)"
+                                          aria-label="Display name override" />
+                                      </div>
+                                      <div class="fp-edit-actions">
+                                        <button class="fp-edit-cancel-btn" type="button" (click)="closeArNestedColEdit()">Cancel</button>
+                                        <button class="fp-edit-save-btn" type="button" (click)="saveArNestedColEdit()">Save</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                } @else {
                                 <div class="fp-header">
                                   <span class="fp-title">Columns</span>
                                   <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
@@ -235,9 +274,15 @@
                                           <span class="fp-drag" aria-hidden="true">
                                             <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                                           </span>
-                                          <span class="fp-label">{{ attr.name }}</span>
+                                          <span class="fp-label">{{ getArNestedAttrLabel(attr.id) }}</span>
+                                          <div class="fp-row-actions">
+                                            <button class="fp-action-btn" type="button" title="Edit" [attr.aria-label]="'Edit ' + getArNestedAttrLabel(attr.id)" tabindex="-1"
+                                              (click)="openArNestedColEdit(attr.id)">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                            </button>
+                                          </div>
                                           <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
-                                            [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                                            [attr.aria-label]="'Remove ' + getArNestedAttrLabel(attr.id) + ' from view'"
                                             (click)="toggleNestedAttrColumn(attr.id)"></button>
                                         </div>
                                       }
@@ -305,6 +350,7 @@
                                   <button class="fp-footer-apply-btn" type="button"
                                     (click)="showNestedColMenu.set(false); nestedAttrSearchQuery.set('')">Apply</button>
                                 </div>
+                                }
                               </div>
                             }
                           </div>
@@ -438,6 +484,45 @@
   <!-- Agency col-menu rendered outside <table> so it layers above expanded rows -->
   @if (showAgencyColMenu()) {
     <div class="fp-col-menu" role="dialog" aria-label="Columns" (click)="$event.stopPropagation()">
+      @if (agencyColMenuEditItem()) {
+        <div class="fp-header">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="fp-icon-btn" type="button" aria-label="Back to columns" (click)="closeAgencyColEdit()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="fp-title">Column Settings</span>
+          </div>
+          <button class="fp-icon-btn" type="button" aria-label="Close columns panel" (click)="showAgencyColMenu.set(false); closeAgencyColEdit()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="fp-body">
+          <div class="fp-edit-body">
+            <div class="fp-edit-readonly-section">
+              <span class="fp-edit-readonly-label">Attribute name</span>
+              <span class="fp-edit-readonly-value">{{ agencyColMenuEditAttr()?.name }}</span>
+            </div>
+            <div class="fp-edit-readonly-section">
+              <span class="fp-edit-readonly-label">ERRefId</span>
+              <span class="fp-edit-readonly-value fp-edit-readonly-value--code">{{ agencyColMenuEditItem()?.id }}</span>
+            </div>
+            <div class="fp-edit-readonly-section">
+              <span class="fp-edit-readonly-label">Description</span>
+              <span class="fp-edit-readonly-value">{{ agencyColMenuEditAttr()?.description || 'No description available.' }}</span>
+            </div>
+            <div class="fp-edit-name-field">
+              <input class="fp-edit-input" id="agency-col-edit-display-name" type="text" placeholder="Display Name (Optional)"
+                [value]="agencyColMenuEditLabel()"
+                (input)="agencyColMenuEditLabel.set($any($event.target).value)"
+                aria-label="Display name override" />
+            </div>
+            <div class="fp-edit-actions">
+              <button class="fp-edit-cancel-btn" type="button" (click)="closeAgencyColEdit()">Cancel</button>
+              <button class="fp-edit-save-btn" type="button" (click)="saveAgencyColEdit()">Save</button>
+            </div>
+          </div>
+        </div>
+      } @else {
       <div class="fp-header">
         <span class="fp-title">Columns</span>
         <button class="fp-icon-btn" type="button" aria-label="Close" title="Close"
@@ -484,9 +569,15 @@
                 <span class="fp-drag" aria-hidden="true">
                   <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                 </span>
-                <span class="fp-label">{{ attr.name }}</span>
+                <span class="fp-label">{{ getAgencyAttrLabel(attr.id) }}</span>
+                <div class="fp-row-actions">
+                  <button class="fp-action-btn" type="button" title="Edit" [attr.aria-label]="'Edit ' + getAgencyAttrLabel(attr.id)" tabindex="-1"
+                    (click)="openAgencyColEdit(attr.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  </button>
+                </div>
                 <button class="fp-toggle fp-toggle--on" type="button" title="Remove from view"
-                  [attr.aria-label]="'Remove ' + attr.name + ' from view'"
+                  [attr.aria-label]="'Remove ' + getAgencyAttrLabel(attr.id) + ' from view'"
                   (click)="toggleAgencyAttrColumn(attr.id)"></button>
               </div>
             }
@@ -544,6 +635,7 @@
         <button class="fp-footer-apply-btn" type="button"
           (click)="showAgencyColMenu.set(false); agencyAttrSearchQuery.set('')">Apply</button>
       </div>
+      }
     </div>
   }
 </div>

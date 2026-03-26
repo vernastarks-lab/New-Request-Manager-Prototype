@@ -340,6 +340,66 @@ export class ProcessResponsesComponent {
   getNestedAttrName(attrId: string): string { return this.prNestedAttrMap().get(attrId)?.name ?? attrId; }
   getNestedAttrValue(reqId: string, attrId: string): string { return this.prNestedErrefData[reqId]?.[attrId] ?? '—'; }
 
+  readonly prMainColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly prMainColMenuEditLabel = signal<string>('');
+  readonly prMainCustomAttrLabels = signal<Record<string, string>>({});
+  readonly prMainColMenuEditAttr = computed(() => {
+    const item = this.prMainColMenuEditItem();
+    if (!item) return null;
+    return this.prAgencyErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openPrMainColEdit(id: string): void {
+    this.prMainColMenuEditItem.set({ type: 'attr', id });
+    this.prMainColMenuEditLabel.set(this.prMainCustomAttrLabels()[id] ?? '');
+  }
+  closePrMainColEdit(): void {
+    this.prMainColMenuEditItem.set(null);
+    this.prMainColMenuEditLabel.set('');
+  }
+  savePrMainColEdit(): void {
+    const item = this.prMainColMenuEditItem();
+    if (!item) return;
+    const label = this.prMainColMenuEditLabel().trim();
+    this.prMainCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.prMainColMenuEditItem.set(null);
+    this.prMainColMenuEditLabel.set('');
+  }
+  getPrMainAttrLabel(id: string): string {
+    const custom = this.prMainCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.prAgencyErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
+  readonly prNestedColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly prNestedColMenuEditLabel = signal<string>('');
+  readonly prNestedCustomAttrLabels = signal<Record<string, string>>({});
+  readonly prNestedColMenuEditAttr = computed(() => {
+    const item = this.prNestedColMenuEditItem();
+    if (!item) return null;
+    return this.prNestedErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openPrNestedColEdit(id: string): void {
+    this.prNestedColMenuEditItem.set({ type: 'attr', id });
+    this.prNestedColMenuEditLabel.set(this.prNestedCustomAttrLabels()[id] ?? '');
+  }
+  closePrNestedColEdit(): void {
+    this.prNestedColMenuEditItem.set(null);
+    this.prNestedColMenuEditLabel.set('');
+  }
+  savePrNestedColEdit(): void {
+    const item = this.prNestedColMenuEditItem();
+    if (!item) return;
+    const label = this.prNestedColMenuEditLabel().trim();
+    this.prNestedCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.prNestedColMenuEditItem.set(null);
+    this.prNestedColMenuEditLabel.set('');
+  }
+  getPrNestedAttrLabel(id: string): string {
+    const custom = this.prNestedCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.prNestedErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
   // ── Action dropdown ───────────────────────────────────────────────────────
   readonly prShowActionMenu = signal<string | null>(null);
   toggleActionMenu(reqId: string): void {

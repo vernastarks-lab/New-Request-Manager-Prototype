@@ -1202,6 +1202,36 @@ export class RequestManagerComponent {
     return this.addedNestedAttrMap().get(id)?.name ?? id;
   }
 
+  readonly nestedColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly nestedColMenuEditLabel = signal<string>('');
+  readonly nestedCustomAttrLabels = signal<Record<string, string>>({});
+  readonly nestedColMenuEditAttr = computed(() => {
+    const item = this.nestedColMenuEditItem();
+    if (!item) return null;
+    return this.nestedErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openNestedColEdit(id: string): void {
+    this.nestedColMenuEditItem.set({ type: 'attr', id });
+    this.nestedColMenuEditLabel.set(this.nestedCustomAttrLabels()[id] ?? '');
+  }
+  closeNestedColEdit(): void {
+    this.nestedColMenuEditItem.set(null);
+    this.nestedColMenuEditLabel.set('');
+  }
+  saveNestedColEdit(): void {
+    const item = this.nestedColMenuEditItem();
+    if (!item) return;
+    const label = this.nestedColMenuEditLabel().trim();
+    this.nestedCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.nestedColMenuEditItem.set(null);
+    this.nestedColMenuEditLabel.set('');
+  }
+  getNestedAttrLabel(id: string): string {
+    const custom = this.nestedCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.nestedErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
   getNestedErrefValue(agencyName: string, errefId: string): string {
     return this.nestedErrefAgencyData[agencyName]?.[errefId] ?? '';
   }
@@ -1473,6 +1503,36 @@ export class RequestManagerComponent {
 
   getAllocAttrName(id: string): string {
     return this.allocAttrMap().get(id)?.name ?? id;
+  }
+
+  readonly allocColMenuEditItem = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly allocColMenuEditLabel = signal<string>('');
+  readonly allocCustomAttrLabels = signal<Record<string, string>>({});
+  readonly allocColMenuEditAttr = computed(() => {
+    const item = this.allocColMenuEditItem();
+    if (!item) return null;
+    return this.errefAttributes.find(a => a.id === item.id) ?? null;
+  });
+  openAllocColEdit(id: string): void {
+    this.allocColMenuEditItem.set({ type: 'attr', id });
+    this.allocColMenuEditLabel.set(this.allocCustomAttrLabels()[id] ?? '');
+  }
+  closeAllocColEdit(): void {
+    this.allocColMenuEditItem.set(null);
+    this.allocColMenuEditLabel.set('');
+  }
+  saveAllocColEdit(): void {
+    const item = this.allocColMenuEditItem();
+    if (!item) return;
+    const label = this.allocColMenuEditLabel().trim();
+    this.allocCustomAttrLabels.update(prev => ({ ...prev, [item.id]: label }));
+    this.allocColMenuEditItem.set(null);
+    this.allocColMenuEditLabel.set('');
+  }
+  getAllocAttrLabel(id: string): string {
+    const custom = this.allocCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.errefAttributes.find(a => a.id === id)?.name ?? id;
   }
   readonly allAllocSelected = computed(() =>
     this.allocRows().length > 0 && this.selectedAllocRows().size === this.allocRows().length
