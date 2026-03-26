@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 type NestedColKey = 'groupCode' | 'student' | 'requestedExperience' | 'requestDates' | 'numberOfRequests';
 
-interface ErrefAttribute { id: string; name: string; description?: string; }
+interface ErrefAttribute { id: string; name: string; description?: string; collection: string; }
 
 interface ActionRequest {
   id: string;
@@ -62,8 +62,9 @@ export class ActionRequestsComponent {
   readonly agencyOpenAttrOptId = signal<string | null>(null);
   readonly agencyShowErref     = signal(false);
   readonly agencyErrefQuery    = signal('');
-  readonly agencyAttrSearchQuery  = signal('');
-  readonly agencyAvailExpanded    = signal(true);
+  readonly agencyAttrSearchQuery     = signal('');
+  readonly agencySelectedCollection  = signal<string | null>(null);
+  readonly agencyAvailExpanded       = signal(true);
 
   readonly agencyAttrMap        = computed(() => new Map(this.agencyAddedAttrs().map(a => [a.id, a])));
   readonly agencyAttrRemaining  = computed(() => this.agencyAttrMax - this.agencyAddedAttrs().length);
@@ -80,19 +81,19 @@ export class ActionRequestsComponent {
   readonly agencyColAtCapacity = computed(() => this.agencyColInUse() >= this.agencyColLimit);
 
   readonly agencyErrefAttributes: ErrefAttribute[] = [
-    { id: 'ERREF_4',  name: 'Ambulance Victoria',              description: 'Metro or Rural classification assigned by Ambulance Victoria.' },
-    { id: 'ERREF_5',  name: 'NDIS Provider',                   description: 'Indicates whether the agency is a registered NDIS provider.' },
-    { id: 'ERREF_6',  name: 'Partner Agreement',               description: 'Indicates whether a formal partner agreement is in place.' },
-    { id: 'ERREF_7',  name: 'Accreditation Status',            description: 'Current accreditation status of the placement agency.' },
-    { id: 'ERREF_8',  name: 'Capacity (Annual)',               description: 'Maximum number of students the agency can accommodate per year.' },
-    { id: 'ERREF_9',  name: 'On-Call Availability',            description: 'Whether the agency supports on-call or after-hours placements.' },
-    { id: 'ERREF_10', name: 'Rural & Remote Classification',   description: 'Indicates if the agency is classified as rural or remote.' },
-    { id: 'ERREF_11', name: 'Supervisor Ratio',                description: 'Supervisor-to-student ratio maintained by the agency.' },
-    { id: 'ERREF_12', name: 'Teaching Hospital Affiliation',   description: 'Whether the agency has an affiliation with a teaching hospital.' },
-    { id: 'ERREF_13', name: 'Medicare Provider Number',        description: 'Medicare Provider Number associated with the agency.' },
-    { id: 'ERREF_14', name: 'International Placements',        description: 'Whether the agency accepts international students.' },
-    { id: 'ERREF_15', name: 'DHS Working With Children',       description: 'Indicates valid Working With Children check is held.' },
-    { id: 'ERREF_16', name: 'Insurance Expiry Date',           description: 'Expiry date of the agency professional indemnity insurance.' },
+    { id: 'ERREF_4',  name: 'Ambulance Victoria',              description: 'Metro or Rural classification assigned by Ambulance Victoria.',  collection: 'Clinical'    },
+    { id: 'ERREF_5',  name: 'NDIS Provider',                   description: 'Indicates whether the agency is a registered NDIS provider.',    collection: 'Global'      },
+    { id: 'ERREF_6',  name: 'Partner Agreement',               description: 'Indicates whether a formal partner agreement is in place.',       collection: 'Global'      },
+    { id: 'ERREF_7',  name: 'Accreditation Status',            description: 'Current accreditation status of the placement agency.',          collection: 'Global'      },
+    { id: 'ERREF_8',  name: 'Capacity (Annual)',               description: 'Maximum number of students the agency can accommodate per year.', collection: 'Clinical'    },
+    { id: 'ERREF_9',  name: 'On-Call Availability',            description: 'Whether the agency supports on-call or after-hours placements.', collection: 'Global'      },
+    { id: 'ERREF_10', name: 'Rural & Remote Classification',   description: 'Indicates if the agency is classified as rural or remote.',       collection: 'Location'    },
+    { id: 'ERREF_11', name: 'Supervisor Ratio',                description: 'Supervisor-to-student ratio maintained by the agency.',           collection: 'Clinical'    },
+    { id: 'ERREF_12', name: 'Teaching Hospital Affiliation',   description: 'Whether the agency has an affiliation with a teaching hospital.', collection: 'Clinical'    },
+    { id: 'ERREF_13', name: 'Medicare Provider Number',        description: 'Medicare Provider Number associated with the agency.',            collection: 'Compliance'  },
+    { id: 'ERREF_14', name: 'International Placements',        description: 'Whether the agency accepts international students.',               collection: 'Location'    },
+    { id: 'ERREF_15', name: 'DHS Working With Children',       description: 'Indicates valid Working With Children check is held.',            collection: 'Compliance'  },
+    { id: 'ERREF_16', name: 'Insurance Expiry Date',           description: 'Expiry date of the agency professional indemnity insurance.',     collection: 'Compliance'  },
   ];
 
   readonly agencyErrefResults = computed(() => {
@@ -115,6 +116,26 @@ export class ActionRequestsComponent {
   readonly agencyAttrsAvailable = computed(() =>
     this.agencyAttrColumnOrder().filter(a => this.agencyHiddenAttrs().has(a.id))
   );
+  readonly agencyAttrCollections = computed(() => {
+    const q = this.agencyAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.agencyAttrOrder().map((id: string) => id));
+    const map = new Map<string, number>();
+    for (const a of this.agencyErrefAttributes) {
+      if (!added.has(a.id) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)))
+        map.set(a.collection, (map.get(a.collection) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  });
+  readonly agencyAttrsInCollection = computed(() => {
+    const sel = this.agencySelectedCollection();
+    if (!sel) return [] as ErrefAttribute[];
+    const q = this.agencyAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.agencyAttrOrder().map((id: string) => id));
+    return this.agencyErrefAttributes.filter(a =>
+      !added.has(a.id) && a.collection === sel &&
+      (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q))
+    );
+  });
 
   readonly agencyErrefData: Record<string, Record<string, string>> = {
     'Heidelberg Gen. - Cardiology':    { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes' },
@@ -152,8 +173,9 @@ export class ActionRequestsComponent {
   readonly nestedOpenAttrOptId = signal<string | null>(null);
   readonly nestedShowErref     = signal(false);
   readonly nestedErrefQuery    = signal('');
-  readonly nestedAttrSearchQuery  = signal('');
-  readonly nestedAvailExpanded    = signal(true);
+  readonly nestedAttrSearchQuery     = signal('');
+  readonly nestedSelectedCollection  = signal<string | null>(null);
+  readonly nestedAvailExpanded       = signal(true);
 
   readonly nestedAttrMap          = computed(() => new Map(this.nestedAddedAttrs().map(a => [a.id, a])));
   readonly nestedAttrRemaining    = computed(() => this.nestedAttrMax - this.nestedAddedAttrs().length);
@@ -172,20 +194,20 @@ export class ActionRequestsComponent {
   readonly nestedColAtCapacity = computed(() => this.nestedColInUse() >= this.nestedColLimit);
 
   readonly nestedErrefAttributes: ErrefAttribute[] = [
-    { id: 'ERREF_1',  name: 'Aboriginal/Torres Strait',                   description: 'Indicates whether the student identifies as Aboriginal or Torres Strait Islander.' },
-    { id: 'ERREF_2',  name: 'Acknowledgement Availability for Placement', description: 'Confirms the student has acknowledged their availability for this placement block.' },
-    { id: 'ERREF_3',  name: 'Ambulance Orientation',                      description: 'Records whether the student has completed the required ambulance orientation session.' },
-    { id: 'ERREF_17', name: 'Disability Support Plan',                    description: 'Indicates whether the student has an active disability support plan.' },
-    { id: 'ERREF_18', name: 'Driver Licence',                             description: 'Whether the student holds a valid driver licence.' },
-    { id: 'ERREF_19', name: 'First Aid Certificate',                      description: 'Whether the student holds a current first aid certificate.' },
-    { id: 'ERREF_20', name: 'Flu Vaccination',                            description: 'Whether the student has received the current season flu vaccination.' },
-    { id: 'ERREF_21', name: 'Hepatitis B Vaccination',                    description: 'Whether the student has completed the Hepatitis B vaccination course.' },
-    { id: 'ERREF_22', name: 'International Student',                      description: 'Indicates whether the student is an international student.' },
-    { id: 'ERREF_23', name: 'Police Check Expiry',                        description: 'Expiry date of the student police check clearance.' },
-    { id: 'ERREF_24', name: 'Student Equity Scholarship',                 description: 'Whether the student is currently receiving an equity scholarship.' },
-    { id: 'ERREF_25', name: 'CPR Certification',                          description: 'Whether the student holds a current CPR certification.' },
-    { id: 'ERREF_26', name: 'Language Background Other Than English',      description: 'Indicates if the student has a language background other than English.' },
-    { id: 'ERREF_27', name: 'Prior Healthcare Experience',                description: 'Whether the student has prior formal healthcare work experience.' },
+    { id: 'ERREF_1',  name: 'Aboriginal/Torres Strait',                   description: 'Indicates whether the student identifies as Aboriginal or Torres Strait Islander.',    collection: 'Global'        },
+    { id: 'ERREF_2',  name: 'Acknowledgement Availability for Placement', description: 'Confirms the student has acknowledged their availability for this placement block.',    collection: 'Compliance'    },
+    { id: 'ERREF_3',  name: 'Ambulance Orientation',                      description: 'Records whether the student has completed the required ambulance orientation session.', collection: 'Allied Health'  },
+    { id: 'ERREF_17', name: 'Disability Support Plan',                    description: 'Indicates whether the student has an active disability support plan.',                  collection: 'Global'        },
+    { id: 'ERREF_18', name: 'Driver Licence',                             description: 'Whether the student holds a valid driver licence.',                                      collection: 'Compliance'    },
+    { id: 'ERREF_19', name: 'First Aid Certificate',                      description: 'Whether the student holds a current first aid certificate.',                             collection: 'Allied Health'  },
+    { id: 'ERREF_20', name: 'Flu Vaccination',                            description: 'Whether the student has received the current season flu vaccination.',                   collection: 'Allied Health'  },
+    { id: 'ERREF_21', name: 'Hepatitis B Vaccination',                    description: 'Whether the student has completed the Hepatitis B vaccination course.',                  collection: 'Allied Health'  },
+    { id: 'ERREF_22', name: 'International Student',                      description: 'Indicates whether the student is an international student.',                             collection: 'Global'        },
+    { id: 'ERREF_23', name: 'Police Check Expiry',                        description: 'Expiry date of the student police check clearance.',                                     collection: 'Compliance'    },
+    { id: 'ERREF_24', name: 'Student Equity Scholarship',                 description: 'Whether the student is currently receiving an equity scholarship.',                      collection: 'Global'        },
+    { id: 'ERREF_25', name: 'CPR Certification',                          description: 'Whether the student holds a current CPR certification.',                                 collection: 'Allied Health'  },
+    { id: 'ERREF_26', name: 'Language Background Other Than English',      description: 'Indicates if the student has a language background other than English.',                collection: 'Global'        },
+    { id: 'ERREF_27', name: 'Prior Healthcare Experience',                description: 'Whether the student has prior formal healthcare work experience.',                       collection: 'Compliance'    },
   ];
 
   readonly nestedErrefResults = computed(() => {
@@ -212,6 +234,26 @@ export class ActionRequestsComponent {
   readonly nestedAttrsAvailable = computed(() =>
     this.nestedAttrColumnOrder().filter(a => this.nestedHiddenAttrs().has(a.id))
   );
+  readonly nestedAttrCollections = computed(() => {
+    const q = this.nestedAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.nestedAddedAttrs().map((a: ErrefAttribute) => a.id));
+    const map = new Map<string, number>();
+    for (const a of this.nestedErrefAttributes) {
+      if (!added.has(a.id) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)))
+        map.set(a.collection, (map.get(a.collection) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  });
+  readonly nestedAttrsInCollection = computed(() => {
+    const sel = this.nestedSelectedCollection();
+    if (!sel) return [] as ErrefAttribute[];
+    const q = this.nestedAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.nestedAddedAttrs().map((a: ErrefAttribute) => a.id));
+    return this.nestedErrefAttributes.filter(a =>
+      !added.has(a.id) && a.collection === sel &&
+      (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q))
+    );
+  });
 
   readonly nestedErrefData: Record<string, Record<string, string>> = {
     '0200': { ERREF_1: 'No',  ERREF_2: 'Yes', ERREF_3: 'No'  },

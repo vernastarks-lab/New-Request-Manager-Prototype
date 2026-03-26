@@ -1244,6 +1244,63 @@
   white-space: normal;
   overflow-wrap: break-word;
 }
+.fp-collection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 12px 8px;
+}
+.fp-collection-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+  &:hover { background: #f9fafb; }
+}
+.fp-collection-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fp-collection-item-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #111827;
+}
+.fp-collection-item-count {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+.fp-collection-breadcrumb {
+  padding: 4px 12px 2px;
+}
+.fp-collection-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  padding: 4px 0;
+  &:hover { color: #111827; }
+}
+.fp-attr-no-results {
+  font-size: 0.8rem;
+  color: #6b7280;
+  padding: 8px 14px;
+  margin: 0;
+}
 
 .fp-col-count-badge {
   font-size: 0.72rem;

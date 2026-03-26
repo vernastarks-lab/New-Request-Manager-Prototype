@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 type PrMainStdColKey = 'numberOfRequests' | 'numberOfPlacements';
 type PrNestedColKey  = 'groupCode' | 'student' | 'requestedDates' | 'experience' | 'numberOfRequests' | 'offers';
 
-interface ErrefAttribute { id: string; name: string; description?: string; }
+interface ErrefAttribute { id: string; name: string; description?: string; collection: string; }
 
 interface ProcessRequest {
   id: string;
@@ -97,23 +97,25 @@ export class ProcessResponsesComponent {
   readonly prMainColAtCapacity = computed(() => this.prMainColInUse() >= this.prMainColLimit);
 
   readonly prAgencyErrefAttributes: ErrefAttribute[] = [
-    { id: 'ERREF_4',  name: 'Ambulance Victoria',            description: 'Metro or Rural classification assigned by Ambulance Victoria.' },
-    { id: 'ERREF_5',  name: 'NDIS Provider',                 description: 'Indicates whether the agency is a registered NDIS provider.' },
-    { id: 'ERREF_6',  name: 'Partner Agreement',             description: 'Indicates whether a formal partner agreement is in place.' },
-    { id: 'ERREF_7',  name: 'Accreditation Status',          description: 'Current accreditation status of the placement agency.' },
-    { id: 'ERREF_8',  name: 'Capacity (Annual)',              description: 'Maximum number of students the agency can accommodate per year.' },
-    { id: 'ERREF_9',  name: 'On-Call Availability',          description: 'Whether the agency supports on-call or after-hours placements.' },
-    { id: 'ERREF_10', name: 'Rural & Remote Classification', description: 'Indicates if the agency is classified as rural or remote.' },
-    { id: 'ERREF_11', name: 'Supervisor Ratio',              description: 'Supervisor-to-student ratio maintained by the agency.' },
-    { id: 'ERREF_12', name: 'Teaching Hospital Affiliation', description: 'Whether the agency has an affiliation with a teaching hospital.' },
-    { id: 'ERREF_13', name: 'Medicare Provider Number',      description: 'Medicare Provider Number associated with the agency.' },
-    { id: 'ERREF_14', name: 'International Placements',      description: 'Whether the agency accepts international students.' },
-    { id: 'ERREF_15', name: 'DHS Working With Children',     description: 'Indicates valid Working With Children check is held.' },
+    { id: 'ERREF_4',  name: 'Ambulance Victoria',            description: 'Metro or Rural classification assigned by Ambulance Victoria.', collection: 'Clinical'   },
+    { id: 'ERREF_5',  name: 'NDIS Provider',                 description: 'Indicates whether the agency is a registered NDIS provider.',   collection: 'Global'     },
+    { id: 'ERREF_6',  name: 'Partner Agreement',             description: 'Indicates whether a formal partner agreement is in place.',      collection: 'Global'     },
+    { id: 'ERREF_7',  name: 'Accreditation Status',          description: 'Current accreditation status of the placement agency.',         collection: 'Global'     },
+    { id: 'ERREF_8',  name: 'Capacity (Annual)',              description: 'Maximum number of students the agency can accommodate per year.', collection: 'Clinical'   },
+    { id: 'ERREF_9',  name: 'On-Call Availability',          description: 'Whether the agency supports on-call or after-hours placements.', collection: 'Global'     },
+    { id: 'ERREF_10', name: 'Rural & Remote Classification', description: 'Indicates if the agency is classified as rural or remote.',      collection: 'Location'   },
+    { id: 'ERREF_11', name: 'Supervisor Ratio',              description: 'Supervisor-to-student ratio maintained by the agency.',          collection: 'Clinical'   },
+    { id: 'ERREF_12', name: 'Teaching Hospital Affiliation', description: 'Whether the agency has an affiliation with a teaching hospital.', collection: 'Clinical'   },
+    { id: 'ERREF_13', name: 'Medicare Provider Number',      description: 'Medicare Provider Number associated with the agency.',           collection: 'Compliance' },
+    { id: 'ERREF_14', name: 'International Placements',      description: 'Whether the agency accepts international students.',              collection: 'Location'   },
+    { id: 'ERREF_15', name: 'DHS Working With Children',     description: 'Indicates valid Working With Children check is held.',           collection: 'Compliance' },
   ];
-  readonly prMainAttrSearchQuery  = signal('');
-  readonly prMainAvailExpanded    = signal(true);
-  readonly prNestedAttrSearchQuery = signal('');
-  readonly prNestedAvailExpanded   = signal(true);
+  readonly prMainAttrSearchQuery      = signal('');
+  readonly prMainSelectedCollection   = signal<string | null>(null);
+  readonly prMainAvailExpanded        = signal(true);
+  readonly prNestedAttrSearchQuery    = signal('');
+  readonly prNestedSelectedCollection = signal<string | null>(null);
+  readonly prNestedAvailExpanded      = signal(true);
 
   readonly prAgencyErrefResults = computed(() => {
     const q = this.prMainAttrSearchQuery().toLowerCase().trim();
@@ -130,12 +132,52 @@ export class ProcessResponsesComponent {
   readonly prMainAttrsAvailable = computed(() =>
     this.prAgencyAttrColumnOrder().filter(a => this.prAgencyHiddenAttrs().has(a.id))
   );
+  readonly prMainAttrCollections = computed(() => {
+    const q = this.prMainAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.prAgencyAddedAttrs().map(a => a.id));
+    const map = new Map<string, number>();
+    for (const a of this.prAgencyErrefAttributes) {
+      if (!added.has(a.id) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)))
+        map.set(a.collection, (map.get(a.collection) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  });
+  readonly prMainAttrsInCollection = computed(() => {
+    const sel = this.prMainSelectedCollection();
+    if (!sel) return [] as ErrefAttribute[];
+    const q = this.prMainAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.prAgencyAddedAttrs().map(a => a.id));
+    return this.prAgencyErrefAttributes.filter(a =>
+      !added.has(a.id) && a.collection === sel &&
+      (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q))
+    );
+  });
   readonly prNestedColsAvailable = computed(() =>
     this.prNestedColDefs.filter(c => !this.prNestedColVis()[c.key])
   );
   readonly prNestedAttrsAvailable = computed(() =>
     this.prNestedAttrColumnOrder().filter(a => this.prNestedHiddenAttrs().has(a.id))
   );
+  readonly prNestedAttrCollections = computed(() => {
+    const q = this.prNestedAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.prNestedAddedAttrs().map(a => a.id));
+    const map = new Map<string, number>();
+    for (const a of this.prNestedErrefAttributes) {
+      if (!added.has(a.id) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)))
+        map.set(a.collection, (map.get(a.collection) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  });
+  readonly prNestedAttrsInCollection = computed(() => {
+    const sel = this.prNestedSelectedCollection();
+    if (!sel) return [] as ErrefAttribute[];
+    const q = this.prNestedAttrSearchQuery().toLowerCase().trim();
+    const added = new Set(this.prNestedAddedAttrs().map(a => a.id));
+    return this.prNestedErrefAttributes.filter(a =>
+      !added.has(a.id) && a.collection === sel &&
+      (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q))
+    );
+  });
   readonly prAgencyErrefData: Record<string, Record<string, string>> = {
     'Queensland Ambulance Service': { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes' },
     'Royal Ambulance Victoria':     { ERREF_4: 'Rural', ERREF_5: 'No',  ERREF_6: 'Yes' },
@@ -222,18 +264,18 @@ export class ProcessResponsesComponent {
   readonly prNestedColAtCapacity = computed(() => this.prNestedColInUse() >= this.prNestedColLimit);
 
   readonly prNestedErrefAttributes: ErrefAttribute[] = [
-    { id: 'ERREF_1',  name: 'Aboriginal/Torres Strait',                   description: 'Indicates whether the student identifies as Aboriginal or Torres Strait Islander.' },
-    { id: 'ERREF_2',  name: 'Acknowledgement Availability for Placement', description: 'Confirms the student has acknowledged their availability for this placement block.' },
-    { id: 'ERREF_3',  name: 'Ambulance Orientation',                      description: 'Records whether the student has completed the required ambulance orientation session.' },
-    { id: 'ERREF_17', name: 'Disability Support Plan',                    description: 'Indicates whether the student has an active disability support plan.' },
-    { id: 'ERREF_18', name: 'Driver Licence',                             description: 'Whether the student holds a valid driver licence.' },
-    { id: 'ERREF_19', name: 'First Aid Certificate',                      description: 'Whether the student holds a current first aid certificate.' },
-    { id: 'ERREF_20', name: 'Flu Vaccination',                            description: 'Whether the student has received the current season flu vaccination.' },
-    { id: 'ERREF_21', name: 'Hepatitis B Vaccination',                    description: 'Whether the student has completed the Hepatitis B vaccination course.' },
-    { id: 'ERREF_22', name: 'International Student',                      description: 'Indicates whether the student is an international student.' },
-    { id: 'ERREF_23', name: 'Police Check Expiry',                        description: 'Expiry date of the student police check clearance.' },
-    { id: 'ERREF_24', name: 'Student Equity Scholarship',                 description: 'Whether the student is currently receiving an equity scholarship.' },
-    { id: 'ERREF_25', name: 'CPR Certification',                          description: 'Whether the student holds a current CPR certification.' },
+    { id: 'ERREF_1',  name: 'Aboriginal/Torres Strait',                   description: 'Indicates whether the student identifies as Aboriginal or Torres Strait Islander.',    collection: 'Global'       },
+    { id: 'ERREF_2',  name: 'Acknowledgement Availability for Placement', description: 'Confirms the student has acknowledged their availability for this placement block.',    collection: 'Compliance'   },
+    { id: 'ERREF_3',  name: 'Ambulance Orientation',                      description: 'Records whether the student has completed the required ambulance orientation session.', collection: 'Allied Health' },
+    { id: 'ERREF_17', name: 'Disability Support Plan',                    description: 'Indicates whether the student has an active disability support plan.',                  collection: 'Global'       },
+    { id: 'ERREF_18', name: 'Driver Licence',                             description: 'Whether the student holds a valid driver licence.',                                      collection: 'Compliance'   },
+    { id: 'ERREF_19', name: 'First Aid Certificate',                      description: 'Whether the student holds a current first aid certificate.',                             collection: 'Allied Health' },
+    { id: 'ERREF_20', name: 'Flu Vaccination',                            description: 'Whether the student has received the current season flu vaccination.',                   collection: 'Allied Health' },
+    { id: 'ERREF_21', name: 'Hepatitis B Vaccination',                    description: 'Whether the student has completed the Hepatitis B vaccination course.',                  collection: 'Allied Health' },
+    { id: 'ERREF_22', name: 'International Student',                      description: 'Indicates whether the student is an international student.',                             collection: 'Global'       },
+    { id: 'ERREF_23', name: 'Police Check Expiry',                        description: 'Expiry date of the student police check clearance.',                                     collection: 'Compliance'   },
+    { id: 'ERREF_24', name: 'Student Equity Scholarship',                 description: 'Whether the student is currently receiving an equity scholarship.',                      collection: 'Global'       },
+    { id: 'ERREF_25', name: 'CPR Certification',                          description: 'Whether the student holds a current CPR certification.',                                 collection: 'Allied Health' },
   ];
   readonly prNestedErrefResults = computed(() => {
     const q = this.prNestedAttrSearchQuery().toLowerCase().trim();
