@@ -153,7 +153,7 @@ export class ProcessResponsesComponent {
     );
   });
   readonly prNestedColsAvailable = computed(() =>
-    this.prNestedColDefs.filter(c => !this.prNestedColVis()[c.key])
+    this.prNestedColDefs.filter(c => c.key !== 'student' && !this.prNestedColVis()[c.key])
   );
   readonly prNestedAttrsAvailable = computed(() =>
     this.prNestedAttrColumnOrder().filter(a => this.prNestedHiddenAttrs().has(a.id))
@@ -258,7 +258,7 @@ export class ProcessResponsesComponent {
 
   readonly prNestedColLimit = 15;
   readonly prNestedColInUse = computed(() =>
-    4 + this.prNestedColDefs.filter(c => this.prNestedColVis()[c.key]).length
+    7 + this.prNestedColDefs.filter(c => c.key !== 'student' && this.prNestedColVis()[c.key]).length
       + this.prNestedAttrColumnOrder().filter(a => !this.prNestedHiddenAttrs().has(a.id)).length
   );
   readonly prNestedColAtCapacity = computed(() => this.prNestedColInUse() >= this.prNestedColLimit);
