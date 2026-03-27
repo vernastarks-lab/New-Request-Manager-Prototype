@@ -181,145 +181,19 @@
               }
               <th class="th th--action" scope="col">Action</th>
               <th class="th th--cog" scope="col">
-                <div class="col-menu-wrapper">
-                  <button
-                    class="col-settings-btn"
-                    type="button"
-                    (click)="showColMenu.update(v => !v)"
-                    [attr.aria-expanded]="showColMenu()"
-                    aria-label="Show or hide columns"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  </button>
-                  @if (showColMenu()) {
-                    <div class="col-menu" role="dialog" aria-label="Column visibility" (click)="$event.stopPropagation()">
-                      <div class="aa-col-menu-heading">Show/Hide Columns</div>
-                      @for (col of colDefs; track col.key) {
-                        <label class="col-menu-item">
-                          <input
-                            type="checkbox"
-                            [checked]="colVisibility()[col.key]"
-                            (change)="toggleCol(col.key)"
-                          />
-                          {{ col.label }}
-                        </label>
-                      }
-                      @if (aaAddedAttrColumns().length > 0) {
-                        <div class="aa-col-menu-divider"></div>
-                        <div class="aa-col-menu-section-label">
-                          Custom
-                          <span class="aa-col-menu-remaining">({{ aaAttrRemaining() }} remaining)</span>
-                        </div>
-                        @for (attr of aaAttrColumnOrder(); track attr.id) {
-                          <div class="col-menu-item aa-col-menu-item--attr">
-                            <label class="aa-col-menu-item-label">
-                              <input
-                                type="checkbox"
-                                [checked]="!aaHiddenAttrColumns().has(attr.id)"
-                                (change)="toggleAaAttrColumn(attr.id)"
-                              />
-                              {{ attr.name }}
-                            </label>
-                            <div class="aa-reorder-btns">
-                              <button
-                                class="aa-reorder-btn"
-                                type="button"
-                                aria-label="Move up"
-                                [disabled]="aaColumnOrder().indexOf(attr.id) === 0"
-                                (click)="moveAaColUp(attr.id); $event.stopPropagation()"
-                              ><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="4"/><polyline points="7 9 12 4 17 9"/></svg></button>
-                              <button
-                                class="aa-reorder-btn"
-                                type="button"
-                                aria-label="Move down"
-                                [disabled]="aaColumnOrder().indexOf(attr.id) === aaColumnOrder().length - 1"
-                                (click)="moveAaColDown(attr.id); $event.stopPropagation()"
-                              ><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="7 15 12 20 17 15"/></svg></button>
-                            </div>
-                            <div class="aa-attr-options-wrapper">
-                              <button
-                                class="aa-attr-options-btn"
-                                type="button"
-                                [attr.aria-label]="'Options for ' + attr.name"
-                                (click)="toggleAaAttrOptions(attr.id); $event.stopPropagation()"
-                              >⋮</button>
-                              @if (aaOpenAttrOptionsId() === attr.id) {
-                                <div class="aa-attr-options-menu" role="menu">
-                                  <button
-                                    class="aa-attr-option-item aa-attr-option-item--danger"
-                                    type="button"
-                                    role="menuitem"
-                                    (click)="removeAaAttrColumn(attr.id); aaOpenAttrOptionsId.set(null)"
-                                  >Delete Column</button>
-                                </div>
-                              }
-                            </div>
-                          </div>
-                        }
-                      }
-                      <div class="aa-col-menu-divider"></div>
-                      <div class="aa-add-attr-wrapper">
-                        <button
-                          class="aa-add-attr-link"
-                          type="button"
-                          (click)="toggleAaErrefSearch(); $event.stopPropagation()"
-                        >
-                          + Include Agency Attribute
-                        </button>
-                        @if (aaShowErrefSearch()) {
-                          <div
-                            class="aa-erref-search-popover"
-                            role="dialog"
-                            aria-label="Search Attribute"
-                            (click)="$event.stopPropagation()"
-                          >
-                            <div class="aa-erref-search-input-wrapper">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="aa-erref-search-icon">
-                                <circle cx="11" cy="11" r="8"/>
-                                <path d="m21 21-4.3-4.3"/>
-                              </svg>
-                              <input
-                                class="aa-erref-search-input"
-                                type="search"
-                                placeholder="Search Attribute"
-                                [value]="aaErrefSearchQuery()"
-                                (input)="aaErrefSearchQuery.set($any($event.target).value)"
-                                aria-label="Search Attribute"
-                                autocomplete="off"
-                              />
-                            </div>
-                            @if (aaErrefSearchResults().length > 0) {
-                              <div class="aa-erref-results">
-                                @for (attr of aaErrefSearchResults(); track attr.id) {
-                                  <div class="aa-erref-result-item">
-                                    <div class="aa-erref-result-info">
-                                      <span class="aa-erref-result-name">{{ attr.name }} <span class="aa-erref-result-id">({{ attr.id }})</span></span>
-                                      @if (attr.description) {
-                                        <span class="aa-erref-result-desc">{{ attr.description }}</span>
-                                      }
-                                    </div>
-                                    <button
-                                      class="aa-erref-add-btn"
-                                      type="button"
-                                      (click)="addAaAttrColumn(attr)"
-                                    >
-                                      Add as Column
-                                    </button>
-                                  </div>
-                                }
-                              </div>
-                            } @else if (aaErrefSearchQuery().trim().length > 0) {
-                              <p class="aa-erref-no-results">No matching attributes found.</p>
-                            }
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
+                <button
+                  class="col-settings-btn"
+                  type="button"
+                  (click)="showColMenu.update(v => !v)"
+                  [attr.aria-expanded]="showColMenu()"
+                  aria-label="Show or hide columns"
+                  title="Modify Columns"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
               </th>
             </tr>
           </thead>
@@ -492,6 +366,190 @@
 
     <div class="sheet-footer"></div>
   </div>
+
+@if (showColMenu()) {
+  <div class="aa-fp-col-menu" role="dialog" aria-label="Column settings" (click)="$event.stopPropagation()">
+    @if (aaColMenuEditItem()) {
+      <!-- Column Settings edit panel -->
+      <div class="fp-header">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="fp-icon-btn" type="button" (click)="closeAaColEdit()" aria-label="Back to columns">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span class="fp-title">Column Settings</span>
+        </div>
+        <button class="fp-icon-btn" type="button" (click)="showColMenu.set(false); closeAaColEdit()" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="fp-body">
+        <div class="fp-edit-body">
+          <div class="fp-edit-readonly-section">
+            <span class="fp-edit-readonly-label">Attribute name</span>
+            <span class="fp-edit-readonly-value">{{ aaColMenuEditAttr()?.name }}</span>
+          </div>
+          <div class="fp-edit-readonly-section">
+            <span class="fp-edit-readonly-label">ERRefId</span>
+            <span class="fp-edit-readonly-value fp-edit-readonly-value--code">{{ aaColMenuEditItem()?.id }}</span>
+          </div>
+          <div class="fp-edit-readonly-section">
+            <span class="fp-edit-readonly-label">Description</span>
+            <span class="fp-edit-readonly-value">{{ aaColMenuEditAttr()?.description || 'No description available.' }}</span>
+          </div>
+          <div class="fp-edit-name-field">
+            <input
+              class="fp-edit-input"
+              type="text"
+              placeholder="Display Name (Optional)"
+              [value]="aaColMenuEditLabel()"
+              (input)="aaColMenuEditLabel.set($any($event.target).value)"
+              aria-label="Display name override"
+            />
+          </div>
+          <div class="fp-edit-actions">
+            <button class="fp-edit-cancel-btn" type="button" (click)="closeAaColEdit()">Cancel</button>
+            <button class="fp-edit-save-btn" type="button" (click)="saveAaColEdit()">Save</button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Normal columns panel -->
+      <div class="fp-header">
+        <span class="fp-title">Columns</span>
+        <button class="fp-icon-btn" type="button" (click)="showColMenu.set(false)" aria-label="Close columns panel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="fp-body">
+        <div class="fp-section-heading">
+          <div class="fp-section-heading-info">
+            <span>Columns in this view</span>
+            <span class="fp-col-count-sub">Includes Action column</span>
+          </div>
+          <span class="fp-col-count-badge">{{ aaColInUse() }} / {{ aaColLimit }}</span>
+        </div>
+        <div class="fp-list">
+          <!-- Locked Agency row -->
+          <div class="fp-row">
+            <span class="fp-label">Agency</span>
+            <button class="fp-toggle fp-toggle--locked" type="button" disabled aria-label="Agency column is always visible"></button>
+          </div>
+          <!-- Visible standard cols -->
+          @for (col of aaColDefsInView(); track col.key) {
+            <div class="fp-row">
+              <span class="fp-drag" aria-hidden="true">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+              </span>
+              <span class="fp-label">{{ col.label }}</span>
+              <button
+                class="fp-toggle fp-toggle--on"
+                type="button"
+                (click)="toggleCol(col.key)"
+                title="Remove from view"
+                [attr.aria-label]="'Remove ' + col.label + ' from view'"
+              ></button>
+            </div>
+          }
+          <!-- Visible attr cols (with pencil) -->
+          @for (attr of aaAttrColsInView(); track attr.id) {
+            <div class="fp-row">
+              <span class="fp-drag" aria-hidden="true">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="#9ca3af"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
+              </span>
+              <span class="fp-label">{{ getAaCustomAttrLabel(attr.id) }}</span>
+              <div class="fp-row-actions">
+                <button
+                  class="fp-action-btn"
+                  type="button"
+                  title="Edit"
+                  (click)="openAaColEdit(attr.id)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+              </div>
+              <button
+                class="fp-toggle fp-toggle--on"
+                type="button"
+                (click)="toggleAaAttrColumn(attr.id)"
+                title="Remove from view"
+                [attr.aria-label]="'Remove ' + getAaCustomAttrLabel(attr.id) + ' from view'"
+              ></button>
+            </div>
+          }
+        </div>
+        <hr class="fp-divider" />
+        <div class="fp-section-heading">
+          <span>Available columns</span>
+        </div>
+        <div class="fp-attr-search-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            class="fp-attr-search"
+            type="search"
+            placeholder="Search agency attribute"
+            [value]="aaAttrSearchQuery()"
+            (input)="aaAttrSearchQuery.set($any($event.target).value)"
+            aria-label="Search agency attribute"
+            autocomplete="off"
+          />
+        </div>
+        @if (aaAttrSearchQuery().trim()) {
+          <div class="fp-attr-results">
+            @for (attr of aaAttrsUnadded(); track attr.id) {
+              <button
+                class="fp-attr-result-item"
+                type="button"
+                [disabled]="aaColInUse() >= aaColLimit"
+                (click)="addAaAttrColumn(attr)"
+                [attr.aria-label]="'Add ' + attr.name + ' column'"
+              >
+                <div class="fp-attr-result-text">
+                  <span class="fp-attr-result-name">{{ attr.name }}</span>
+                  <span class="fp-attr-result-id">{{ attr.id }}</span>
+                </div>
+                <span class="fp-toggle" aria-hidden="true"></span>
+              </button>
+            }
+            @if (aaAttrsUnadded().length === 0) {
+              <p class="fp-attr-no-results">No matching attributes</p>
+            }
+          </div>
+        }
+        <div class="fp-list fp-list--available">
+          @for (col of aaColDefsAvailable(); track col.key) {
+            <div class="fp-row">
+              <span class="fp-label fp-label--muted">{{ col.label }}</span>
+              <button
+                class="fp-toggle"
+                type="button"
+                title="Add to view"
+                [disabled]="aaColInUse() >= aaColLimit"
+                (click)="toggleCol(col.key)"
+                [attr.aria-label]="'Add ' + col.label + ' to view'"
+              ></button>
+            </div>
+          }
+          @for (attr of aaAttrColsAvailable(); track attr.id) {
+            <div class="fp-row">
+              <span class="fp-label fp-label--muted">{{ getAaCustomAttrLabel(attr.id) }}</span>
+              <button
+                class="fp-toggle"
+                type="button"
+                title="Add to view"
+                [disabled]="aaColInUse() >= aaColLimit"
+                (click)="toggleAaAttrColumn(attr.id)"
+                [attr.aria-label]="'Add ' + getAaCustomAttrLabel(attr.id) + ' to view'"
+              ></button>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="fp-footer">
+        <button class="fp-footer-apply-btn" type="button" (click)="showColMenu.set(false)">Apply</button>
+      </div>
+    }
+  </div>
+}
 
   <!-- Cursor-following incompatible reason tooltip -->
   @if (cursorTooltip(); as tip) {

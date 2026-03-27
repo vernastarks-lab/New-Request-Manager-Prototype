@@ -53,13 +53,8 @@ export class AddAgencySheetComponent {
   /* ── Custom attribute columns ── */
   private readonly stdColKeys = ['specialism', 'ranking', 'location', 'plc'] as const;
 
-  readonly aaAttrMax          = 5;
-  readonly aaAttrRemaining    = computed(() => this.aaAttrMax - this.aaAddedAttrColumns().length);
-  readonly aaOpenAttrOptionsId = signal<string | null>(null);
   readonly aaAddedAttrColumns  = signal<ErrefAttribute[]>([]);
   readonly aaHiddenAttrColumns = signal<Set<string>>(new Set());
-  readonly aaErrefSearchQuery  = signal('');
-  readonly aaShowErrefSearch   = signal(false);
 
   /** Unified order: standard col keys + custom attr ids. */
   readonly aaColumnOrder = signal<string[]>(['specialism', 'ranking', 'location', 'plc']);
@@ -76,40 +71,79 @@ export class AddAgencySheetComponent {
   );
 
   readonly aaErrefAttributes: ErrefAttribute[] = [
-    { id: 'ERREF_4', name: 'Ambulance Victoria', description: 'Metro or Rural classification assigned by Ambulance Victoria for this agency' },
-    { id: 'ERREF_5', name: 'NDIS Provider',      description: 'Indicates whether the agency is a registered NDIS provider' },
-    { id: 'ERREF_6', name: 'Partner Agreement',  description: 'Indicates whether a formal partner agreement is in place with this agency' },
+    { id: 'ERREF_4', name: 'Ambulance Victoria',      description: 'Metro or Rural classification assigned by Ambulance Victoria for this agency' },
+    { id: 'ERREF_5', name: 'NDIS Provider',            description: 'Indicates whether the agency is a registered NDIS provider' },
+    { id: 'ERREF_6', name: 'Partner Agreement',        description: 'Indicates whether a formal partner agreement is in place with this agency' },
+    { id: 'ERREF_7', name: 'Teaching Hospital',        description: 'Indicates whether this agency is classified as a teaching hospital' },
+    { id: 'ERREF_8', name: 'Rural Health Incentive',   description: 'Eligible for rural health workforce incentive payments' },
+    { id: 'ERREF_9', name: 'Trauma Centre Level',      description: 'Level I, II or III trauma centre designation' },
+    { id: 'ERREF_10', name: 'Accreditation Status',    description: 'Current accreditation status with the relevant professional body' },
+    { id: 'ERREF_11', name: 'Capacity Rating',         description: 'Overall student capacity rating based on supervisor availability' },
+    { id: 'ERREF_12', name: 'Research Active',         description: 'Whether the agency participates in active clinical research programs' },
+    { id: 'ERREF_13', name: 'Indigenous Health Focus', description: 'Agency has a primary or significant focus on Indigenous health services' },
   ];
 
-  readonly aaErrefSearchResults = computed(() => {
-    const q = this.aaErrefSearchQuery().toLowerCase().trim();
-    if (!q) return [] as ErrefAttribute[];
+  readonly aaErrefData: Record<string, Record<string, string>> = {
+    'Melbourne Emergency Services':     { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes',  ERREF_7: 'Yes', ERREF_8: 'No',  ERREF_9: 'Level I',  ERREF_10: 'Full',    ERREF_11: 'High',   ERREF_12: 'Yes', ERREF_13: 'No'  },
+    'Royal Ambulance Victoria':         { ERREF_4: 'Rural', ERREF_5: '',    ERREF_6: 'Yes',  ERREF_7: 'No',  ERREF_8: 'Yes', ERREF_9: 'Level II', ERREF_10: 'Full',    ERREF_11: 'Medium', ERREF_12: 'No',  ERREF_13: 'Yes' },
+    'Metropolitan Health Network':      { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: '',     ERREF_7: 'Yes', ERREF_8: 'No',  ERREF_9: 'Level I',  ERREF_10: 'Full',    ERREF_11: 'High',   ERREF_12: 'Yes', ERREF_13: 'No'  },
+    'City Medical Response Unit':       { ERREF_4: 'Rural', ERREF_5: '',    ERREF_6: '',     ERREF_7: 'No',  ERREF_8: 'Yes', ERREF_9: 'Level III',ERREF_10: 'Partial', ERREF_11: 'Low',    ERREF_12: 'No',  ERREF_13: 'No'  },
+    'South Eastern Paramedic Services': { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes',  ERREF_7: 'No',  ERREF_8: 'No',  ERREF_9: 'Level II', ERREF_10: 'Full',    ERREF_11: 'Medium', ERREF_12: 'Yes', ERREF_13: 'No'  },
+    'Western Metro Ambulance':          { ERREF_4: 'Rural', ERREF_5: 'Yes', ERREF_6: '',     ERREF_7: 'No',  ERREF_8: 'Yes', ERREF_9: 'Level III',ERREF_10: 'Partial', ERREF_11: 'Low',    ERREF_12: 'No',  ERREF_13: 'Yes' },
+    'Northern Emergency Care':          { ERREF_4: 'Metro', ERREF_5: '',    ERREF_6: 'Yes',  ERREF_7: 'Yes', ERREF_8: 'No',  ERREF_9: 'Level I',  ERREF_10: 'Full',    ERREF_11: 'High',   ERREF_12: 'Yes', ERREF_13: 'No'  },
+  };
+
+  /* ── Col-menu sidesheet signals ── */
+  readonly aaAttrSearchQuery    = signal<string>('');
+  readonly aaColMenuEditItem    = signal<{ type: 'attr'; id: string } | null>(null);
+  readonly aaColMenuEditLabel   = signal<string>('');
+  readonly aaCustomAttrLabels   = signal<Record<string, string>>({});
+
+  readonly aaColLimit = 15;
+
+  readonly aaColMenuEditAttr = computed(() => {
+    const item = this.aaColMenuEditItem();
+    if (!item) return null;
+    return this.aaErrefAttributes.find(a => a.id === item.id) ?? null;
+  });
+
+  readonly aaColDefsInView = computed(() =>
+    this.colDefs.filter(c => this.colVisibility()[c.key]),
+  );
+
+  readonly aaColDefsAvailable = computed(() =>
+    this.colDefs.filter(c => !this.colVisibility()[c.key]),
+  );
+
+  readonly aaAttrColsInView = computed(() =>
+    this.aaAttrColumnOrder().filter(a => !this.aaHiddenAttrColumns().has(a.id)),
+  );
+
+  readonly aaAttrColsAvailable = computed(() =>
+    this.aaAttrColumnOrder().filter(a => this.aaHiddenAttrColumns().has(a.id)),
+  );
+
+  readonly aaAttrsUnadded = computed(() => {
+    const q = this.aaAttrSearchQuery().toLowerCase().trim();
     const added = new Set(this.aaAddedAttrColumns().map(a => a.id));
     return this.aaErrefAttributes.filter(
-      a => !added.has(a.id) && (a.id.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)),
+      a => !added.has(a.id) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)),
     );
   });
 
-  readonly aaErrefData: Record<string, Record<string, string>> = {
-    'Melbourne Emergency Services':     { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes' },
-    'Royal Ambulance Victoria':         { ERREF_4: 'Rural', ERREF_5: '',    ERREF_6: 'Yes' },
-    'Metropolitan Health Network':      { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: ''    },
-    'City Medical Response Unit':       { ERREF_4: 'Rural', ERREF_5: '',    ERREF_6: ''    },
-    'South Eastern Paramedic Services': { ERREF_4: 'Metro', ERREF_5: 'Yes', ERREF_6: 'Yes' },
-    'Western Metro Ambulance':          { ERREF_4: 'Rural', ERREF_5: 'Yes', ERREF_6: ''    },
-    'Northern Emergency Care':          { ERREF_4: 'Metro', ERREF_5: '',    ERREF_6: 'Yes' },
-  };
+  readonly aaColInUse = computed(() =>
+    1 + this.aaColDefsInView().length + this.aaAttrColsInView().length,
+  );
 
   getAaErrefValue(agencyName: string, attrId: string): string {
     return this.aaErrefData[agencyName]?.[attrId] ?? '';
   }
 
   addAaAttrColumn(attr: ErrefAttribute): void {
-    if (this.aaAddedAttrColumns().length >= this.aaAttrMax) return;
+    if (this.aaAddedAttrColumns().length >= this.aaColLimit) return;
     this.aaAddedAttrColumns.update(cols => [...cols, attr]);
     this.aaColumnOrder.update(order => [...order, attr.id]);
-    this.aaErrefSearchQuery.set('');
-    this.aaShowErrefSearch.set(false);
+    this.aaAttrSearchQuery.set('');
   }
 
   removeAaAttrColumn(id: string): void {
@@ -126,38 +160,34 @@ export class AddAgencySheetComponent {
     });
   }
 
-  toggleAaAttrOptions(id: string): void {
-    this.aaOpenAttrOptionsId.update(v => v === id ? null : id);
-    this.aaShowErrefSearch.set(false);
-  }
-
-  toggleAaErrefSearch(): void {
-    this.aaShowErrefSearch.update(v => !v);
-    this.aaOpenAttrOptionsId.set(null);
-  }
-
-  moveAaColUp(id: string): void {
-    this.aaColumnOrder.update(order => {
-      const idx = order.indexOf(id);
-      if (idx <= 0) return order;
-      const next = [...order];
-      [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-      return next;
-    });
-  }
-
-  moveAaColDown(id: string): void {
-    this.aaColumnOrder.update(order => {
-      const idx = order.indexOf(id);
-      if (idx < 0 || idx >= order.length - 1) return order;
-      const next = [...order];
-      [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-      return next;
-    });
-  }
-
   getAaAttrName(id: string): string {
+    const custom = this.aaCustomAttrLabels()[id];
+    if (custom) return custom;
     return this.aaAttrMap().get(id)?.name ?? id;
+  }
+
+  getAaCustomAttrLabel(id: string): string {
+    const custom = this.aaCustomAttrLabels()[id]?.trim();
+    if (custom) return custom;
+    return this.aaErrefAttributes.find(a => a.id === id)?.name ?? id;
+  }
+
+  openAaColEdit(id: string): void {
+    this.aaColMenuEditItem.set({ type: 'attr', id });
+    this.aaColMenuEditLabel.set(this.aaCustomAttrLabels()[id] ?? '');
+  }
+
+  closeAaColEdit(): void {
+    this.aaColMenuEditItem.set(null);
+    this.aaColMenuEditLabel.set('');
+  }
+
+  saveAaColEdit(): void {
+    const item = this.aaColMenuEditItem();
+    if (!item) return;
+    const label = this.aaColMenuEditLabel().trim();
+    this.aaCustomAttrLabels.update(m => ({ ...m, [item.id]: label }));
+    this.closeAaColEdit();
   }
 
   // per-agency state: queued default='planned', available default='none'
@@ -269,12 +299,9 @@ export class AddAgencySheetComponent {
 
   onDocClick(e: MouseEvent): void {
     const target = e.target as HTMLElement;
-    if (!target.closest('.col-menu-wrapper')) {
+    if (!target.closest('.aa-fp-col-menu') && !target.closest('.col-settings-btn')) {
       this.showColMenu.set(false);
-      this.aaShowErrefSearch.set(false);
-    }
-    if (!target.closest('.aa-attr-options-wrapper')) {
-      this.aaOpenAttrOptionsId.set(null);
+      this.aaColMenuEditItem.set(null);
     }
   }
 

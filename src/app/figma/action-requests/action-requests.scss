@@ -953,9 +953,9 @@ thead { position: relative; z-index: 10; }
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px 4px 14px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #374151;
   flex-shrink: 0;
 
   &--collapsible { padding-top: 6px; padding-bottom: 2px; border-top: 1px solid #f3f4f6; }
@@ -1280,4 +1280,59 @@ thead { position: relative; z-index: 10; }
     color: #6b7280;
     align-self: flex-start;
   }
+}
+
+.fp-edit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 16px;
+}
+
+.fp-edit-name-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.fp-edit-input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+  box-sizing: border-box;
+  &:focus { border-color: #0b5f7c; }
+  &::placeholder { color: #9ca3af; font-weight: 400; }
+}
+
+.fp-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.fp-edit-cancel-btn {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 6px 16px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.fp-edit-save-btn {
+  background: #0b5f7c;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 16px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  &:hover { background: #094f68; }
 }

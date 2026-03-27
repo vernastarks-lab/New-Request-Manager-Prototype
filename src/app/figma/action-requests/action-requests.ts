@@ -188,7 +188,7 @@ export class ActionRequestsComponent {
 
   readonly nestedColLimit = 15;
   readonly nestedColInUse = computed(() =>
-    2 + this.nestedColDefs.filter(c => this.nestedColVisibility()[c.key]).length
+    5 + this.nestedColDefs.filter(c => c.key !== 'student' && this.nestedColVisibility()[c.key]).length
       + this.nestedAttrColumnOrder().filter(a => !this.nestedHiddenAttrs().has(a.id)).length
   );
   readonly nestedColAtCapacity = computed(() => this.nestedColInUse() >= this.nestedColLimit);
@@ -228,7 +228,7 @@ export class ActionRequestsComponent {
   });
 
   readonly nestedColsAvailable = computed(() =>
-    this.nestedColDefs.filter(c => !this.nestedColVisibility()[c.key])
+    this.nestedColDefs.filter(c => c.key !== 'student' && !this.nestedColVisibility()[c.key])
   );
 
   readonly nestedAttrsAvailable = computed(() =>
